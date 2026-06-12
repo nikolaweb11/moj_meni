@@ -7,7 +7,6 @@ import BucketList from './pages/BucketList'
 import Settings from './pages/Settings'
 import Explore from './pages/Explore'
 import BackgroundPhoto from './components/BackgroundPhoto'
-import BibleVerse from './components/BibleVerse'
 import { useFirebaseSync } from './hooks/useFirebaseSync'
 
 function FirebaseSync() {
@@ -35,7 +34,6 @@ export default function App() {
             </Routes>
           </main>
         </div>
-        <BibleVerse />
       </div>
     </BrowserRouter>
   )

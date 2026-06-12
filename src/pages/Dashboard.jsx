@@ -46,6 +46,9 @@ const TRAVEL_QUOTES = [
   { text: '„Svet je pun čuda. Treba samo izaći iz kuće."', ref: '— J.R.R. Tolkien' },
 ]
 
+// 0-based indices of photos where both Nikola & Andjela appear together
+const COUPLE_PHOTOS = new Set([0,1,4,12,13,14,15,16,23,24,26,31,45,46,47,48,49,50,51,52,53,54,56,57,58,60,61])
+
 const REACTIONS = ['❤️', '😍', '😂', '😮', '😢', '🔥']
 
 function HeroCarousel({ couple }) {
@@ -91,8 +94,8 @@ function HeroCarousel({ couple }) {
   }, [lightbox, prevPhoto, nextPhoto, closeLightbox])
 
   const getQuote = (idx) => {
-    if (idx % 2 === 0) return BIBLE_VERSES[Math.floor(idx / 2) % BIBLE_VERSES.length]
-    return TRAVEL_QUOTES[Math.floor(idx / 2) % TRAVEL_QUOTES.length]
+    if (COUPLE_PHOTOS.has(idx)) return BIBLE_VERSES[idx % BIBLE_VERSES.length]
+    return TRAVEL_QUOTES[idx % TRAVEL_QUOTES.length]
   }
 
   const interactions = lightbox !== null ? (photoInteractions?.[lightbox] || { liked: false, reactions: [], comments: [] }) : null
