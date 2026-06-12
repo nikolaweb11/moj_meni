@@ -27,16 +27,39 @@ export default function BackgroundPhoto() {
     return () => clearInterval(id)
   }, [advance])
 
+  const url = ALL_PHOTOS[idx]
+  const opacity = fading ? 0 : 1
+
   return (
     <div
       className="fixed inset-0 pointer-events-none z-0"
-      style={{
-        backgroundImage: `url(${ALL_PHOTOS[idx]})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        opacity: fading ? 0 : 0.22,
-        transition: 'opacity 0.9s ease-in-out',
-      }}
-    />
+      style={{ opacity, transition: 'opacity 0.9s ease-in-out' }}
+    >
+      {/* Blurred cover layer — fills any gaps around the contained image */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url(${url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(24px)',
+          transform: 'scale(1.1)',
+          opacity: 0.18,
+        }}
+      />
+      {/* Full image layer — always shows the whole photo */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url(${url})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          opacity: 0.22,
+        }}
+      />
+    </div>
   )
 }
