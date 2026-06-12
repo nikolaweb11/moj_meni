@@ -1,165 +1,372 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+const DEFAULT_PRETIP = [
+  { task: 'Proveri datum isteka pasoša', category: 'documents' },
+  { task: 'Proveri da li treba viza', category: 'documents' },
+  { task: 'Kupi putno osiguranje', category: 'documents' },
+  { task: 'Rezerviši letove', category: 'booking' },
+  { task: 'Rezerviši smeštaj', category: 'booking' },
+  { task: 'Rezerviši rent a car (ako treba)', category: 'booking' },
+  { task: 'Obavesti banku o putovanju', category: 'bank' },
+  { task: 'Proveri kurs valute i podigi gotovinu', category: 'bank' },
+  { task: 'Skini offline mape (Google Maps / Maps.me)', category: 'tech' },
+  { task: 'Skini prevodilac offline', category: 'tech' },
+  { task: 'Napravi bekap fotografija telefona', category: 'tech' },
+  { task: 'Napuni power bank', category: 'tech' },
+  { task: 'Organizuj čuvanje kućnih ljubimaca', category: 'home' },
+  { task: 'Zaustavi poštu / obavesti komšije', category: 'home' },
+  { task: 'Proveri vremenske prilike za destinaciju', category: 'other' },
+  { task: 'Pakuj kofer', category: 'packing' },
+  { task: 'Odštampaj rezervacije i itinerar', category: 'documents' },
+]
+
+const EMPTY_DOCS = () => ({
+  name: '',
+  passportNumber: '',
+  passportExpiry: '',
+  visaRequired: false,
+  visaStatus: '',
+  visaExpiry: '',
+  insurance: { company: '', policyNumber: '', phone: '', coverage: '' },
+  vaccinations: '',
+})
+
+const EMPTY_LOCAL_INFO = () => ({
+  currency: '',
+  exchangeRate: '',
+  homeCurrency: 'EUR',
+  emergencyNumbers: { police: '', ambulance: '', fire: '', embassy: '' },
+  hospital: { name: '', address: '', phone: '' },
+  usefulPhrases: [],
+  culturalTips: '',
+  simCard: '',
+  timezone: '',
+  voltage: '',
+  language: '',
+})
+
+function newTrip(data) {
+  return {
+    ...data,
+    id: crypto.randomUUID(),
+    // transport
+    flights: [],
+    transfers: [],
+    rentalCar: null,
+    // accommodation
+    accommodations: [],
+    // itinerary
+    itinerary: [],
+    // budget
+    budget: { total: Number(data.budgetTotal) || 0, currency: data.currency || 'EUR', people: 2 },
+    expenses: [],
+    // documents
+    documents: { person1: EMPTY_DOCS(), person2: EMPTY_DOCS() },
+    // packing
+    packingList: [],
+    outfits: [],
+    // local info
+    localInfo: EMPTY_LOCAL_INFO(),
+    // places
+    places: [],
+    // memories
+    memories: [],
+    // pre-trip
+    preTrip: DEFAULT_PRETIP.map((t) => ({ ...t, id: crypto.randomUUID(), done: false, deadline: '', notes: '' })),
+    notes: '',
+  }
+}
+
 const useStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       couple: { name1: 'Ti', name2: 'Ona' },
       trips: [],
       bucketList: [],
 
       setCouple: (name1, name2) => set({ couple: { name1, name2 } }),
 
-      addTrip: (trip) =>
-        set((state) => ({
-          trips: [
-            ...state.trips,
-            {
-              ...trip,
-              id: crypto.randomUUID(),
-              itinerary: [],
-              packingList: [],
-              expenses: [],
-              notes: '',
-            },
-          ],
-        })),
+      /* ── TRIPS ── */
+      addTrip: (data) => set((s) => ({ trips: [...s.trips, newTrip(data)] })),
 
       updateTrip: (id, updates) =>
-        set((state) => ({
-          trips: state.trips.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+        set((s) => ({ trips: s.trips.map((t) => (t.id === id ? { ...t, ...updates } : t)) })),
+
+      deleteTrip: (id) => set((s) => ({ trips: s.trips.filter((t) => t.id !== id) })),
+
+      /* ── FLIGHTS ── */
+      addFlight: (tripId, flight) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, flights: [...t.flights, { ...flight, id: crypto.randomUUID() }] }
+          ),
+        })),
+      updateFlight: (tripId, flightId, updates) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, flights: t.flights.map((f) => (f.id === flightId ? { ...f, ...updates } : f)) }
+          ),
+        })),
+      deleteFlight: (tripId, flightId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, flights: t.flights.filter((f) => f.id !== flightId) }
+          ),
         })),
 
-      deleteTrip: (id) =>
-        set((state) => ({ trips: state.trips.filter((t) => t.id !== id) })),
+      /* ── TRANSFERS ── */
+      addTransfer: (tripId, transfer) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, transfers: [...(t.transfers || []), { ...transfer, id: crypto.randomUUID() }] }
+          ),
+        })),
+      deleteTransfer: (tripId, tid) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, transfers: t.transfers.filter((x) => x.id !== tid) }
+          ),
+        })),
+      setRentalCar: (tripId, car) =>
+        set((s) => ({ trips: s.trips.map((t) => (t.id !== tripId ? t : { ...t, rentalCar: car })) })),
 
+      /* ── ACCOMMODATION ── */
+      addAccommodation: (tripId, acc) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, accommodations: [...t.accommodations, { ...acc, id: crypto.randomUUID() }] }
+          ),
+        })),
+      updateAccommodation: (tripId, accId, updates) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, accommodations: t.accommodations.map((a) => (a.id === accId ? { ...a, ...updates } : a)) }
+          ),
+        })),
+      deleteAccommodation: (tripId, accId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, accommodations: t.accommodations.filter((a) => a.id !== accId) }
+          ),
+        })),
+
+      /* ── ITINERARY ── */
       addActivity: (tripId, day, activity) =>
-        set((state) => ({
-          trips: state.trips.map((t) => {
+        set((s) => ({
+          trips: s.trips.map((t) => {
             if (t.id !== tripId) return t
-            const itinerary = [...t.itinerary]
-            const dayIdx = itinerary.findIndex((d) => d.day === day)
-            if (dayIdx >= 0) {
-              itinerary[dayIdx] = {
-                ...itinerary[dayIdx],
-                activities: [
-                  ...itinerary[dayIdx].activities,
-                  { ...activity, id: crypto.randomUUID(), done: false },
-                ],
-              }
-            } else {
-              itinerary.push({ day, activities: [{ ...activity, id: crypto.randomUUID(), done: false }] })
+            const itin = [...t.itinerary]
+            const idx = itin.findIndex((d) => d.day === day)
+            const newAct = { ...activity, id: crypto.randomUUID(), done: false }
+            if (idx >= 0) itin[idx] = { ...itin[idx], activities: [...itin[idx].activities, newAct] }
+            else itin.push({ day, theme: '', notes: '', activities: [newAct] })
+            return { ...t, itinerary: itin }
+          }),
+        })),
+      toggleActivity: (tripId, day, actId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t, itinerary: t.itinerary.map((d) =>
+                d.day !== day ? d : { ...d, activities: d.activities.map((a) => a.id === actId ? { ...a, done: !a.done } : a) }
+              ),
             }
-            return { ...t, itinerary }
+          ),
+        })),
+      deleteActivity: (tripId, day, actId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t, itinerary: t.itinerary.map((d) =>
+                d.day !== day ? d : { ...d, activities: d.activities.filter((a) => a.id !== actId) }
+              ),
+            }
+          ),
+        })),
+      updateDayMeta: (tripId, day, meta) =>
+        set((s) => ({
+          trips: s.trips.map((t) => {
+            if (t.id !== tripId) return t
+            const itin = [...t.itinerary]
+            const idx = itin.findIndex((d) => d.day === day)
+            if (idx >= 0) itin[idx] = { ...itin[idx], ...meta }
+            else itin.push({ day, theme: '', notes: '', activities: [], ...meta })
+            return { ...t, itinerary: itin }
           }),
         })),
 
-      toggleActivity: (tripId, day, activityId) =>
-        set((state) => ({
-          trips: state.trips.map((t) => {
-            if (t.id !== tripId) return t
-            return {
-              ...t,
-              itinerary: t.itinerary.map((d) => {
-                if (d.day !== day) return d
-                return {
-                  ...d,
-                  activities: d.activities.map((a) =>
-                    a.id === activityId ? { ...a, done: !a.done } : a
-                  ),
-                }
-              }),
-            }
-          }),
-        })),
-
-      deleteActivity: (tripId, day, activityId) =>
-        set((state) => ({
-          trips: state.trips.map((t) => {
-            if (t.id !== tripId) return t
-            return {
-              ...t,
-              itinerary: t.itinerary.map((d) => {
-                if (d.day !== day) return d
-                return { ...d, activities: d.activities.filter((a) => a.id !== activityId) }
-              }),
-            }
-          }),
-        })),
-
+      /* ── BUDGET ── */
+      updateBudget: (tripId, budget) =>
+        set((s) => ({ trips: s.trips.map((t) => (t.id !== tripId ? t : { ...t, budget: { ...t.budget, ...budget } })) })),
       addExpense: (tripId, expense) =>
-        set((state) => ({
-          trips: state.trips.map((t) =>
-            t.id !== tripId
-              ? t
-              : { ...t, expenses: [...(t.expenses || []), { ...expense, id: crypto.randomUUID() }] }
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, expenses: [...(t.expenses || []), { ...expense, id: crypto.randomUUID() }] }
+          ),
+        })),
+      deleteExpense: (tripId, expId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, expenses: t.expenses.filter((e) => e.id !== expId) }
           ),
         })),
 
-      deleteExpense: (tripId, expenseId) =>
-        set((state) => ({
-          trips: state.trips.map((t) =>
-            t.id !== tripId
-              ? t
-              : { ...t, expenses: (t.expenses || []).filter((e) => e.id !== expenseId) }
-          ),
-        })),
-
+      /* ── PACKING ── */
       addPackingItem: (tripId, item) =>
-        set((state) => ({
-          trips: state.trips.map((t) =>
-            t.id !== tripId
-              ? t
-              : {
-                  ...t,
-                  packingList: [
-                    ...(t.packingList || []),
-                    { ...item, id: crypto.randomUUID(), packed: false },
-                  ],
-                }
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, packingList: [...(t.packingList || []), { ...item, id: crypto.randomUUID(), packed: false }] }
           ),
         })),
-
       togglePackingItem: (tripId, itemId) =>
-        set((state) => ({
-          trips: state.trips.map((t) =>
-            t.id !== tripId
-              ? t
-              : {
-                  ...t,
-                  packingList: (t.packingList || []).map((i) =>
-                    i.id === itemId ? { ...i, packed: !i.packed } : i
-                  ),
-                }
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, packingList: t.packingList.map((i) => i.id === itemId ? { ...i, packed: !i.packed } : i) }
           ),
         })),
-
       deletePackingItem: (tripId, itemId) =>
-        set((state) => ({
-          trips: state.trips.map((t) =>
-            t.id !== tripId
-              ? t
-              : { ...t, packingList: (t.packingList || []).filter((i) => i.id !== itemId) }
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, packingList: t.packingList.filter((i) => i.id !== itemId) }
+          ),
+        })),
+      addOutfit: (tripId, outfit) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, outfits: [...(t.outfits || []), { ...outfit, id: crypto.randomUUID() }] }
+          ),
+        })),
+      updateOutfit: (tripId, outfitId, updates) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, outfits: t.outfits.map((o) => o.id === outfitId ? { ...o, ...updates } : o) }
+          ),
+        })),
+      deleteOutfit: (tripId, outfitId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, outfits: t.outfits.filter((o) => o.id !== outfitId) }
           ),
         })),
 
+      /* ── DOCUMENTS ── */
+      updateDocuments: (tripId, person, data) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, documents: { ...t.documents, [person]: { ...t.documents[person], ...data } } }
+          ),
+        })),
+
+      /* ── LOCAL INFO ── */
+      updateLocalInfo: (tripId, data) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, localInfo: { ...t.localInfo, ...data } }
+          ),
+        })),
+      addPhrase: (tripId, phrase) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, localInfo: { ...t.localInfo, usefulPhrases: [...(t.localInfo?.usefulPhrases || []), { ...phrase, id: crypto.randomUUID() }] } }
+          ),
+        })),
+      deletePhrase: (tripId, phraseId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, localInfo: { ...t.localInfo, usefulPhrases: t.localInfo.usefulPhrases.filter((p) => p.id !== phraseId) } }
+          ),
+        })),
+
+      /* ── PLACES ── */
+      addPlace: (tripId, place) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, places: [...(t.places || []), { ...place, id: crypto.randomUUID(), visited: false }] }
+          ),
+        })),
+      updatePlace: (tripId, placeId, updates) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, places: t.places.map((p) => p.id === placeId ? { ...p, ...updates } : p) }
+          ),
+        })),
+      deletePlace: (tripId, placeId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, places: t.places.filter((p) => p.id !== placeId) }
+          ),
+        })),
+
+      /* ── MEMORIES ── */
+      addMemory: (tripId, memory) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, memories: [...(t.memories || []), { ...memory, id: crypto.randomUUID(), photos: [] }] }
+          ),
+        })),
+      updateMemory: (tripId, memId, updates) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, memories: t.memories.map((m) => m.id === memId ? { ...m, ...updates } : m) }
+          ),
+        })),
+      deleteMemory: (tripId, memId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, memories: t.memories.filter((m) => m.id !== memId) }
+          ),
+        })),
+      addPhoto: (tripId, memId, photo) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, memories: t.memories.map((m) => m.id === memId ? { ...m, photos: [...m.photos, { ...photo, id: crypto.randomUUID() }] } : m) }
+          ),
+        })),
+      deletePhoto: (tripId, memId, photoId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, memories: t.memories.map((m) => m.id === memId ? { ...m, photos: m.photos.filter((p) => p.id !== photoId) } : m) }
+          ),
+        })),
+
+      /* ── PRE-TRIP ── */
+      togglePreTrip: (tripId, taskId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, preTrip: t.preTrip.map((p) => p.id === taskId ? { ...p, done: !p.done } : p) }
+          ),
+        })),
+      addPreTripTask: (tripId, task) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, preTrip: [...t.preTrip, { ...task, id: crypto.randomUUID(), done: false }] }
+          ),
+        })),
+      deletePreTripTask: (tripId, taskId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, preTrip: t.preTrip.filter((p) => p.id !== taskId) }
+          ),
+        })),
+      updatePreTripTask: (tripId, taskId, updates) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, preTrip: t.preTrip.map((p) => p.id === taskId ? { ...p, ...updates } : p) }
+          ),
+        })),
+
+      /* ── BUCKET LIST ── */
       addBucketItem: (item) =>
-        set((state) => ({
-          bucketList: [...state.bucketList, { ...item, id: crypto.randomUUID(), done: false }],
-        })),
-
+        set((s) => ({ bucketList: [...s.bucketList, { ...item, id: crypto.randomUUID(), done: false }] })),
       toggleBucketItem: (id) =>
-        set((state) => ({
-          bucketList: state.bucketList.map((i) => (i.id === id ? { ...i, done: !i.done } : i)),
-        })),
-
+        set((s) => ({ bucketList: s.bucketList.map((i) => (i.id === id ? { ...i, done: !i.done } : i)) })),
       deleteBucketItem: (id) =>
-        set((state) => ({ bucketList: state.bucketList.filter((i) => i.id !== id) })),
+        set((s) => ({ bucketList: s.bucketList.filter((i) => i.id !== id) })),
 
-      resetAll: () =>
-        set({ trips: [], bucketList: [], couple: { name1: 'Ti', name2: 'Ona' } }),
+      resetAll: () => set({ trips: [], bucketList: [], couple: { name1: 'Ti', name2: 'Ona' } }),
     }),
-    { name: 'nas-odmor-storage' }
+    { name: 'nas-odmor-v2' }
   )
 )
 
