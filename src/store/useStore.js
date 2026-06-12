@@ -484,7 +484,7 @@ const useStore = create(
               ...t,
               familyWall: {
                 ...(t.familyWall || { guestPosts: [], dailyUpdates: [] }),
-                dailyUpdates: [...(t.familyWall?.dailyUpdates || []), { ...update, id: crypto.randomUUID(), photos: [], date: new Date().toISOString() }],
+                dailyUpdates: [...(t.familyWall?.dailyUpdates || []), { ...update, id: crypto.randomUUID(), photos: update.photoUrl ? [{ id: crypto.randomUUID(), url: update.photoUrl }] : [], date: new Date().toISOString() }],
               },
             }
           ),

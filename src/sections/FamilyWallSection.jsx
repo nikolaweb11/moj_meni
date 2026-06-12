@@ -51,6 +51,9 @@ export default function FamilyWallSection({ trip }) {
   const [dayNum, setDayNum] = useState('')
   const [dayTitle, setDayTitle] = useState('')
   const [dayText, setDayText] = useState('')
+  const [dayPhotoUrl, setDayPhotoUrl] = useState('')
+  const [dayPhotoTab, setDayPhotoTab] = useState('upload')
+  const dayFileRef = useRef()
 
   // Photo for existing daily update
   const [uploadingForId, setUploadingForId] = useState(null)
@@ -77,11 +80,18 @@ export default function FamilyWallSection({ trip }) {
     if (guestFileRef.current) guestFileRef.current.value = ''
   }
 
+  function handleDayFileChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    compressImage(file, (url) => setDayPhotoUrl(url))
+  }
+
   function submitDailyUpdate(e) {
     e.preventDefault()
     if (!dayTitle.trim() || !dayText.trim()) return
-    addDailyUpdate(trip.id, { day: dayNum || '?', title: dayTitle.trim(), text: dayText.trim() })
-    setDayNum(''); setDayTitle(''); setDayText('')
+    addDailyUpdate(trip.id, { day: dayNum || '?', title: dayTitle.trim(), text: dayText.trim(), photoUrl: dayPhotoUrl || null })
+    setDayNum(''); setDayTitle(''); setDayText(''); setDayPhotoUrl('')
+    if (dayFileRef.current) dayFileRef.current.value = ''
   }
 
   function handleAddPhotoToUpdate(updateId) {
@@ -172,6 +182,27 @@ export default function FamilyWallSection({ trip }) {
                   required
                 />
               </div>
+              {/* Optional photo for new diary entry */}
+              <div>
+                <label className="block text-xs text-mist mb-1">Fotografija dana (opciono)</label>
+                <div className="flex gap-2 mb-2">
+                  <button type="button" onClick={() => setDayPhotoTab('upload')} className={`text-xs px-3 py-1 rounded-lg ${dayPhotoTab === 'upload' ? 'bg-forest text-white' : 'bg-linen text-mist'}`}>
+                    <Upload size={11} className="inline mr-1" />Upload
+                  </button>
+                  <button type="button" onClick={() => setDayPhotoTab('url')} className={`text-xs px-3 py-1 rounded-lg ${dayPhotoTab === 'url' ? 'bg-forest text-white' : 'bg-linen text-mist'}`}>
+                    <Link2 size={11} className="inline mr-1" />URL
+                  </button>
+                </div>
+                {dayPhotoTab === 'upload' ? (
+                  <input ref={dayFileRef} type="file" accept="image/*" onChange={handleDayFileChange} className="text-xs text-mist file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-forest/10 file:text-forest hover:file:bg-forest/20" />
+                ) : (
+                  <input type="url" value={dayPhotoUrl} onChange={(e) => setDayPhotoUrl(e.target.value)} placeholder="https://..." className={inputCls} />
+                )}
+                {dayPhotoUrl && (
+                  <img src={dayPhotoUrl} alt="preview" className="mt-2 h-24 rounded-xl object-cover" />
+                )}
+              </div>
+
               <button
                 type="submit"
                 className="flex items-center gap-2 bg-forest text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-forest-light transition-colors"

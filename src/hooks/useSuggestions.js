@@ -327,6 +327,12 @@ export function usePlaceSuggestions(destination) {
 }
 
 // ── Flight suggestions ────────────────────────────────────────────────────────
+const trstenikTip = {
+  icon: '🚗',
+  title: 'Polazak iz Trstenik → aerodrom BEG',
+  description: 'Trstenik do aerodroma "Nikola Tesla" (BEG): ~170 km, oko 1h45min vožnje autoputem A1/E75 prema Beogradu. Alternativa: autobus Trstenik–Beograd AS (~3h, ~600 RSD) + taksi/Bolt do aerodroma (~800 RSD). Preporučujemo polazak najmanje 4h pre leta.',
+}
+
 export function getFlightSuggestions(destination) {
   const type = inferDestType(destination)
   const d = (destination || '').toLowerCase()
@@ -373,6 +379,7 @@ export function getFlightSuggestions(destination) {
       ? 'Iz aerodroma Keflavik (KEF) do Reykjavika ide Flybus (~50€) ili taksi (~130€). Rent a car je preporučljiv za obilazak Islanda — Ring Road zahteva vozilo.'
       : 'Većina skandinavskih gradova ima odličan javni prevoz od aerodroma — metro, ekspresni voz ili autobus do centra za 15-25€.'
     return [
+      trstenikTip,
       {
         icon: '✈️',
         title: `Letovi do ${dest}`,
@@ -400,6 +407,7 @@ export function getFlightSuggestions(destination) {
   if (type === 'tropical') {
     const dest = isBangkok ? 'Bangkok (BKK/DMK)' : isBali ? 'Bali (DPS — Ngurah Rai)' : 'tropsku destinaciju'
     return [
+      trstenikTip,
       {
         icon: '✈️',
         title: `Letovi do ${dest}`,
@@ -436,6 +444,7 @@ export function getFlightSuggestions(destination) {
   if (type === 'desert') {
     const destName = isDubai ? 'Dubai (DXB)' : 'Marakeš (RAK)'
     return [
+      trstenikTip,
       {
         icon: '✈️',
         title: `Letovi do ${destName}`,
@@ -463,6 +472,7 @@ export function getFlightSuggestions(destination) {
 
   if (type === 'mountain') {
     return [
+      trstenikTip,
       {
         icon: '✈️',
         title: 'Letovi za planinska odredišta',
@@ -512,6 +522,7 @@ export function getFlightSuggestions(destination) {
   }
 
   return [
+    trstenikTip,
     {
       icon: '✈️',
       title: 'Dostupni letovi',
