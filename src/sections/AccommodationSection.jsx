@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, Trash2, ChevronDown, ChevronUp, Wifi, MapPin, Moon, AlertTriangle } from 'lucide-react'
 import { differenceInDays, parseISO, isWithinInterval, addDays, format, isValid } from 'date-fns'
 import useStore from '../store/useStore'
+import { useAccommodationSuggestions, getAccommodationTips } from '../hooks/useSuggestions'
 
 const inp = 'border border-linen rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 bg-white placeholder-slate-400 w-full'
 
@@ -35,6 +36,7 @@ export default function AccommodationSection({ trip }) {
   const updateAccommodation = useStore((s) => s.updateAccommodation)
   const deleteAccommodation = useStore((s) => s.deleteAccommodation)
 
+  const [tab, setTab] = useState('mine')
   const [showForm, setShowForm] = useState(false)
   const [expanded, setExpanded] = useState(null)
   const [form, setForm] = useState(EMPTY)
@@ -75,6 +77,28 @@ export default function AccommodationSection({ trip }) {
 
   return (
     <div className="space-y-4">
+      {/* Tab switcher */}
+      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-linen shadow-sm">
+        <button
+          onClick={() => setTab('mine')}
+          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'mine' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+        >
+          🏨 Moj smeštaj
+        </button>
+        <button
+          onClick={() => setTab('suggest')}
+          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'suggest' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+        >
+          💡 Predlozi
+        </button>
+      </div>
+
+      {/* Predlozi tab */}
+      {tab === 'suggest' && (
+        <AccommodationSuggestions destination={trip.destination} />
+      )}
+
+      {tab === 'mine' && <>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">🏨 Smeštaj tokom putovanja</h2>
@@ -293,6 +317,71 @@ export default function AccommodationSection({ trip }) {
             </div>
           )
         })}
+      </div>
+      </>}
+    </div>
+  )
+}
+
+function AccommodationSuggestions({ destination }) {
+  const { loading, suggestions } = useAccommodationSuggestions(destination)
+  const tips = getAccommodationTips(destination)
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-forest/5 rounded-2xl p-4 border border-forest/15">
+        <p className="text-sm font-semibold text-forest mb-0.5">💡 Predlozi za smeštaj — {destination}</p>
+        <p className="text-xs text-mist">Saveti o kvartovima, tipovima smeštaja i rezervacijama</p>
+      </div>
+
+      {/* Static tips */}
+      <div className="bg-white rounded-2xl border border-linen shadow-sm p-4 space-y-2">
+        <p className="text-xs font-semibold text-ink-light uppercase tracking-wider mb-3">Saveti za smeštaj</p>
+        {tips.map((tip, i) => (
+          <div key={i} className="flex gap-2 text-xs text-ink-light">
+            <span className="text-forest mt-0.5 flex-shrink-0">•</span>
+            <span className="leading-relaxed">{tip}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Wikipedia results */}
+      <div>
+        <p className="text-xs font-semibold text-mist uppercase tracking-wider mb-2 px-1">Kvartovi i oblasti (Wikipedia)</p>
+        {loading && (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-linen/50 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        )}
+        {!loading && suggestions.length === 0 && (
+          <div className="text-center py-8 bg-white rounded-2xl border-2 border-dashed border-linen">
+            <p className="text-2xl mb-2">🔍</p>
+            <p className="text-mist text-sm">Nema Wikipedia rezultata za ovu destinaciju</p>
+          </div>
+        )}
+        {!loading && suggestions.length > 0 && (
+          <div className="space-y-2">
+            {suggestions.map((s, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-linen shadow-sm p-3 flex gap-3">
+                <div className="w-8 h-8 rounded-lg bg-forest/10 flex items-center justify-center text-sm flex-shrink-0">
+                  {s.type === 'neighborhood' ? '🗺️' : '🏨'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-ink text-sm">{s.name}</p>
+                  <p className="text-xs text-mist mt-0.5 line-clamp-2 leading-relaxed">{s.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3">
+        <p className="text-xs text-amber-700">
+          <strong>Preporučene platforme:</strong> Booking.com, Airbnb, Hotels.com, Hostelworld. Uvek proverite recenzije pre rezervacije.
+        </p>
       </div>
     </div>
   )

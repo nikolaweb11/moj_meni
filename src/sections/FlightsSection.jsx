@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Trash2, PlaneTakeoff, PlaneLanding, ChevronDown, ChevronUp, Car, Train, Bus } from 'lucide-react'
 import useStore from '../store/useStore'
+import { getFlightSuggestions } from '../hooks/useSuggestions'
 
 const inp = 'border border-linen rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terra/30 bg-white placeholder-mist w-full'
 
@@ -23,6 +24,7 @@ export default function FlightsSection({ trip }) {
   const deleteTransfer = useStore((s) => s.deleteTransfer)
   const setRentalCar = useStore((s) => s.setRentalCar)
 
+  const [tab, setTab] = useState('mine')
   const [showFlightForm, setShowFlightForm] = useState(false)
   const [showTransferForm, setShowTransferForm] = useState(false)
   const [showCarForm, setShowCarForm] = useState(false)
@@ -59,6 +61,28 @@ export default function FlightsSection({ trip }) {
 
   return (
     <div className="space-y-5">
+      {/* ─── TAB SWITCHER ─── */}
+      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-linen shadow-sm">
+        <button
+          onClick={() => setTab('mine')}
+          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'mine' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+        >
+          ✈️ Moji letovi
+        </button>
+        <button
+          onClick={() => setTab('suggest')}
+          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'suggest' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+        >
+          💡 Predlozi
+        </button>
+      </div>
+
+      {/* ─── PREDLOZI TAB ─── */}
+      {tab === 'suggest' && (
+        <FlightSuggestions destination={trip.destination} />
+      )}
+
+      {tab === 'mine' && <>
       {/* ─── FLIGHTS ─── */}
       <section>
         <div className="flex items-center justify-between mb-3">
@@ -322,6 +346,7 @@ export default function FlightsSection({ trip }) {
           <Empty icon="🚗" text="Nema uneta rent a car detalja" />
         )}
       </section>
+      </>}
     </div>
   )
 }
@@ -341,6 +366,33 @@ function Empty({ icon, text }) {
     <div className="text-center py-8 bg-white rounded-2xl border-2 border-dashed border-linen">
       <div className="text-3xl mb-2">{icon}</div>
       <p className="text-mist text-sm">{text}</p>
+    </div>
+  )
+}
+
+function FlightSuggestions({ destination }) {
+  const tips = getFlightSuggestions(destination)
+  return (
+    <div className="space-y-3">
+      <div className="bg-forest/5 rounded-2xl p-4 border border-forest/15">
+        <p className="text-sm font-semibold text-forest mb-0.5">💡 Predlozi za letove — {destination}</p>
+        <p className="text-xs text-mist">Saveti za planiranje putovanja iz Beograda (BEG)</p>
+      </div>
+      {tips.map((tip, i) => (
+        <div key={i} className="bg-white rounded-2xl border border-linen shadow-sm p-4 flex gap-3">
+          <div className="w-9 h-9 rounded-xl bg-forest/10 flex items-center justify-center text-lg flex-shrink-0">{tip.icon}</div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-ink text-sm mb-1">{tip.title}</p>
+            <p className="text-xs text-ink-light leading-relaxed">{tip.description}</p>
+          </div>
+        </div>
+      ))}
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3">
+        <p className="text-xs text-amber-700">
+          <strong>Napomena:</strong> Predlozi su informativni — uvek proverite aktuelne cene na{' '}
+          <strong>Skyscanner</strong>, <strong>Google Flights</strong> ili <strong>Kiwi.com</strong>.
+        </p>
+      </div>
     </div>
   )
 }

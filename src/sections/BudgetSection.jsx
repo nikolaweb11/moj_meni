@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Plus, Trash2, TrendingUp, Users } from 'lucide-react'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, differenceInDays } from 'date-fns'
 import useStore from '../store/useStore'
+import { getBudgetSuggestions } from '../hooks/useSuggestions'
 
 const inp = 'border border-linen rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terra/30 bg-white placeholder-mist w-full'
 
@@ -21,12 +22,17 @@ export default function BudgetSection({ trip }) {
   const people = budget.people || 2
 
   const today = format(new Date(), 'yyyy-MM-dd')
+  const [tab, setTab] = useState('mine')
   const [showForm, setShowForm] = useState(false)
   const [showBudgetEdit, setShowBudgetEdit] = useState(false)
   const [budgetForm, setBudgetForm] = useState({ total: budget.total || '', currency: currency, people: people })
   const [form, setForm] = useState({ title: '', amount: '', category: 'Hrana', paidBy: 'Oboje', paymentMethod: 'Kartica', date: today, notes: '' })
   const [filterCat, setFilterCat] = useState('sve')
   const [viewMode, setViewMode] = useState('category') // category | date | person
+
+  const numDays = (trip.startDate && trip.endDate)
+    ? differenceInDays(parseISO(trip.endDate), parseISO(trip.startDate)) + 1
+    : 7
 
   const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0)
   const budgetTotal = Number(budget.total) || 0
@@ -65,6 +71,28 @@ export default function BudgetSection({ trip }) {
 
   return (
     <div className="space-y-4">
+      {/* Tab switcher */}
+      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-linen shadow-sm">
+        <button
+          onClick={() => setTab('mine')}
+          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'mine' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+        >
+          💰 Moji troškovi
+        </button>
+        <button
+          onClick={() => setTab('suggest')}
+          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${tab === 'suggest' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+        >
+          📊 Procena budžeta
+        </button>
+      </div>
+
+      {/* Budget suggestions tab */}
+      {tab === 'suggest' && (
+        <BudgetSuggestions destination={trip.destination} numDays={numDays} />
+      )}
+
+      {tab === 'mine' && <>
       {/* Budget summary */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen">
         <div className="flex items-start justify-between mb-4">
@@ -208,6 +236,7 @@ export default function BudgetSection({ trip }) {
           ))}
         </div>
       )}
+      </>}
     </div>
   )
 }
@@ -217,6 +246,87 @@ function MiniStat({ label, value, color, icon }) {
     <div className="bg-parchment rounded-xl p-3 text-center">
       <div className={`font-bold text-base ${color} flex items-center justify-center gap-1`}>{icon}{value}</div>
       <div className="text-xs text-mist mt-0.5">{label}</div>
+    </div>
+  )
+}
+
+function BudgetSuggestions({ destination, numDays }) {
+  const data = getBudgetSuggestions(destination, numDays)
+  const { dailyBudgets, categories, tips, totalEstimate } = data
+
+  const tiers = [
+    { key: 'budget', emoji: '🎒', color: 'bg-green-50 border-green-200', labelColor: 'text-green-700', amountColor: 'text-green-800' },
+    { key: 'midrange', emoji: '🧳', color: 'bg-blue-50 border-blue-200', labelColor: 'text-blue-700', amountColor: 'text-blue-800' },
+    { key: 'luxury', emoji: '💎', color: 'bg-purple-50 border-purple-200', labelColor: 'text-purple-700', amountColor: 'text-purple-800' },
+  ]
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-forest/5 rounded-2xl p-4 border border-forest/15">
+        <p className="text-sm font-semibold text-forest mb-0.5">📊 Procena budžeta — {destination}</p>
+        <p className="text-xs text-mist">Okvirni dnevni i ukupni troškovi za {numDays} {numDays === 1 ? 'dan' : numDays < 5 ? 'dana' : 'dana'}</p>
+      </div>
+
+      {/* Three budget tiers */}
+      <div className="grid grid-cols-3 gap-2">
+        {tiers.map(({ key, emoji, color, labelColor, amountColor }) => {
+          const tier = dailyBudgets[key]
+          return (
+            <div key={key} className={`rounded-2xl border p-3 ${color}`}>
+              <div className="text-xl mb-1">{emoji}</div>
+              <div className={`text-[10px] font-semibold uppercase tracking-wide mb-1 ${labelColor}`}>{tier.label}</div>
+              <div className={`text-xl font-extrabold ${amountColor}`}>{tier.amount}€</div>
+              <div className={`text-[10px] ${labelColor}`}>/ dan</div>
+              <div className={`text-xs font-semibold mt-2 ${amountColor}`}>{totalEstimate[key]}€</div>
+              <div className={`text-[10px] ${labelColor}`}>ukupno</div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Category breakdown */}
+      {categories.length > 0 && (
+        <div className="bg-white rounded-2xl border border-linen shadow-sm overflow-hidden">
+          <div className="px-4 py-3 bg-parchment/50 border-b border-linen">
+            <p className="text-xs font-semibold text-ink-light uppercase tracking-wider">Raspored troškova po kategorijama</p>
+          </div>
+          <div className="divide-y divide-linen">
+            <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-parchment/30">
+              <span className="text-[10px] font-semibold text-mist uppercase">Kategorija</span>
+              <span className="text-[10px] font-semibold text-green-600 uppercase text-center">Budžet</span>
+              <span className="text-[10px] font-semibold text-blue-600 uppercase text-center">Srednje</span>
+              <span className="text-[10px] font-semibold text-purple-600 uppercase text-center">Luksuz</span>
+            </div>
+            {categories.map((cat) => (
+              <div key={cat.name} className="grid grid-cols-4 gap-2 px-4 py-2.5 items-center">
+                <span className="text-xs font-medium text-ink">{cat.name}</span>
+                <span className="text-[11px] text-green-700 text-center">{cat.budget}</span>
+                <span className="text-[11px] text-blue-700 text-center">{cat.midrange}</span>
+                <span className="text-[11px] text-purple-700 text-center">{cat.luxury}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tips */}
+      {tips.length > 0 && (
+        <div className="bg-white rounded-2xl border border-linen shadow-sm p-4 space-y-2">
+          <p className="text-xs font-semibold text-ink-light uppercase tracking-wider mb-3">💳 Valuta & plaćanje</p>
+          {tips.map((tip, i) => (
+            <div key={i} className="flex gap-2 text-xs text-ink-light">
+              <span className="text-forest mt-0.5 flex-shrink-0">•</span>
+              <span className="leading-relaxed">{tip}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3">
+        <p className="text-xs text-amber-700">
+          <strong>Napomena:</strong> Procene su okvirne i zasnovane na prosečnim cenama. Stvarni troškovi zavise od sezone, stila putovanja i ličnih izbora.
+        </p>
+      </div>
     </div>
   )
 }
