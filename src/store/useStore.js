@@ -89,7 +89,9 @@ function newTrip(data) {
     preTrip: DEFAULT_PRETIP.map((t) => ({ ...t, id: crypto.randomUUID(), done: false, deadline: '', notes: '' })),
     notes: '',
     // family wall
-    familyWall: { guestPosts: [], dailyUpdates: [] },
+    familyWall: { guestPosts: [], dailyUpdates: [], photos: [] },
+    // gallery
+    gallery: [],
   }
 }
 
@@ -101,10 +103,13 @@ const useStore = create(
       bucketList: [],
       bgEnabled: true,
       bgSelectedPhoto: 'auto',
+      userBgPhotos: [],
 
       setCouple: (name1, name2) => set({ couple: { name1, name2 } }),
       setBgEnabled: (bgEnabled) => set({ bgEnabled }),
       setBgSelectedPhoto: (bgSelectedPhoto) => set({ bgSelectedPhoto }),
+      addUserBgPhoto: (photo) => set((s) => ({ userBgPhotos: [...(s.userBgPhotos || []), { ...photo, id: crypto.randomUUID() }] })),
+      removeUserBgPhoto: (id) => set((s) => ({ userBgPhotos: (s.userBgPhotos || []).filter((p) => p.id !== id) })),
 
       /* ── TRIPS ── */
       addTrip: (data) => set((s) => ({ trips: [...s.trips, newTrip(data)] })),
@@ -402,6 +407,46 @@ const useStore = create(
               review: {
                 ...(t.review || EMPTY_REVIEW()),
                 photos: (t.review?.photos || []).filter((p) => p.id !== photoId),
+              },
+            }
+          ),
+        })),
+
+      /* ── GALLERY ── */
+      addGalleryPhoto: (tripId, photo) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, gallery: [...(t.gallery || []), { ...photo, id: crypto.randomUUID(), date: new Date().toISOString() }] }
+          ),
+        })),
+      deleteGalleryPhoto: (tripId, photoId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, gallery: (t.gallery || []).filter((p) => p.id !== photoId) }
+          ),
+        })),
+
+      /* ── FAMILY WALL PHOTOS ── */
+      addFamilyWallPhoto: (tripId, photo) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              familyWall: {
+                ...(t.familyWall || {}),
+                photos: [...(t.familyWall?.photos || []), { ...photo, id: crypto.randomUUID(), date: new Date().toISOString() }],
+              },
+            }
+          ),
+        })),
+      deleteFamilyWallPhoto: (tripId, photoId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              familyWall: {
+                ...(t.familyWall || {}),
+                photos: (t.familyWall?.photos || []).filter((p) => p.id !== photoId),
               },
             }
           ),

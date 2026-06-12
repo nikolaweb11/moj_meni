@@ -21,7 +21,7 @@ export default function Navbar() {
               <Plane size={16} className="text-gold" />
             </div>
             <span className="font-display italic text-gold text-xl font-semibold tracking-wide">
-              Naš Odmor
+              Naša Priča
             </span>
           </Link>
 

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Trash2, Upload, Link2, Send, BookOpen, Users } from 'lucide-react'
+import { Trash2, Upload, Link2, Send, BookOpen, Users, Camera, X, ZoomIn } from 'lucide-react'
 import useStore from '../store/useStore'
 
 function compressImage(file, cb) {
@@ -31,8 +31,14 @@ export default function FamilyWallSection({ trip }) {
   const addDailyUpdate = useStore((s) => s.addDailyUpdate)
   const deleteDailyUpdate = useStore((s) => s.deleteDailyUpdate)
   const addDailyPhoto = useStore((s) => s.addDailyPhoto)
+  const addFamilyWallPhoto = useStore((s) => s.addFamilyWallPhoto)
+  const deleteFamilyWallPhoto = useStore((s) => s.deleteFamilyWallPhoto)
 
   const [tab, setTab] = useState('diary')
+
+  // Photos tab state
+  const wallPhotosRef = useRef()
+  const [wallPhotoLightbox, setWallPhotoLightbox] = useState(null)
 
   // Guest form
   const [guestName, setGuestName] = useState('')
@@ -52,7 +58,8 @@ export default function FamilyWallSection({ trip }) {
   const [photoTabFor, setPhotoTabFor] = useState('upload')
   const photoFileRef = useRef()
 
-  const wall = trip.familyWall || { guestPosts: [], dailyUpdates: [] }
+  const wall = trip.familyWall || { guestPosts: [], dailyUpdates: [], photos: [] }
+  const wallPhotos = wall.photos || []
   const guestPosts = [...(wall.guestPosts || [])].reverse()
   const dailyUpdates = [...(wall.dailyUpdates || [])].sort((a, b) => Number(a.day) - Number(b.day))
 
@@ -99,18 +106,27 @@ export default function FamilyWallSection({ trip }) {
   return (
     <div className="space-y-5">
       {/* Tab switcher */}
-      <div className="flex gap-2 bg-white rounded-2xl p-1 border border-linen shadow-sm">
+      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-linen shadow-sm">
         <button
           onClick={() => setTab('diary')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'diary' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'diary' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
         >
-          <BookOpen size={15} /> Naš dnevnik
+          <BookOpen size={14} /> Naš dnevnik
         </button>
         <button
           onClick={() => setTab('guests')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'guests' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'guests' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
         >
-          <Users size={15} /> Poruke od porodice
+          <Users size={14} /> Porodica
+        </button>
+        <button
+          onClick={() => setTab('photos')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'photos' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}
+        >
+          <Camera size={14} /> Fotografije
+          {wallPhotos.length > 0 && (
+            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${tab === 'photos' ? 'bg-white/20 text-white' : 'bg-linen text-mist'}`}>{wallPhotos.length}</span>
+          )}
         </button>
       </div>
 
@@ -238,6 +254,99 @@ export default function FamilyWallSection({ trip }) {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* PHOTOS TAB */}
+      {tab === 'photos' && (
+        <>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-mist">{wallPhotos.length} {wallPhotos.length === 1 ? 'fotografija' : 'fotografija'} na zidu</p>
+            <button
+              onClick={() => wallPhotosRef.current?.click()}
+              className="flex items-center gap-1.5 bg-terra text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-terra-light transition-colors"
+            >
+              <Upload size={14} /> Dodaj slike
+            </button>
+            <input
+              ref={wallPhotosRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                Array.from(e.target.files || []).forEach((file) => {
+                  compressImage(file, (url) => addFamilyWallPhoto(trip.id, { url, filename: file.name }))
+                })
+                e.target.value = ''
+              }}
+            />
+          </div>
+
+          {wallPhotos.length === 0 ? (
+            <div
+              onClick={() => wallPhotosRef.current?.click()}
+              className="py-16 rounded-2xl border-2 border-dashed border-linen hover:border-terra/40 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors"
+            >
+              <div className="w-16 h-16 bg-terra/10 rounded-2xl flex items-center justify-center">
+                <Camera size={28} className="text-terra/60" />
+              </div>
+              <div>
+                <p className="font-display font-semibold text-ink-light text-lg">Zajednički album</p>
+                <p className="text-sm text-mist mt-1">Dodajte fotografije sa putovanja</p>
+              </div>
+            </div>
+          ) : (
+            <div className="columns-2 md:columns-3 gap-2 space-y-2">
+              {wallPhotos.map((photo, i) => (
+                <div key={photo.id} className="break-inside-avoid group relative rounded-xl overflow-hidden shadow-sm cursor-pointer">
+                  <img
+                    src={photo.url}
+                    alt=""
+                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onClick={() => setWallPhotoLightbox(i)}
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    <button onClick={() => setWallPhotoLightbox(i)} className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors">
+                      <ZoomIn size={16} className="text-ink" />
+                    </button>
+                    <button onClick={() => deleteFamilyWallPhoto(trip.id, photo.id)} className="w-9 h-9 bg-red-500/80 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors">
+                      <Trash2 size={14} className="text-white" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <div
+                onClick={() => wallPhotosRef.current?.click()}
+                className="break-inside-avoid h-32 rounded-xl border-2 border-dashed border-linen hover:border-terra/40 flex items-center justify-center cursor-pointer transition-colors group"
+              >
+                <Upload size={20} className="text-mist group-hover:text-terra transition-colors" />
+              </div>
+            </div>
+          )}
+
+          {/* Lightbox */}
+          {wallPhotoLightbox != null && wallPhotos[wallPhotoLightbox] && (
+            <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setWallPhotoLightbox(null)}>
+              <button className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
+                <X size={20} className="text-white" />
+              </button>
+              {wallPhotoLightbox > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setWallPhotoLightbox(wallPhotoLightbox - 1) }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors text-white text-xl"
+                >‹</button>
+              )}
+              <img src={wallPhotos[wallPhotoLightbox].url} alt="" className="max-h-[90vh] max-w-full rounded-xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
+              {wallPhotoLightbox < wallPhotos.length - 1 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setWallPhotoLightbox(wallPhotoLightbox + 1) }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors text-white text-xl"
+                >›</button>
+              )}
+              <p className="absolute bottom-4 text-white/50 text-sm">{wallPhotoLightbox + 1} / {wallPhotos.length}</p>
             </div>
           )}
         </>

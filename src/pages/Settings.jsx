@@ -1,18 +1,30 @@
-import { useState } from 'react'
-import { Save, Trash2, AlertTriangle, Check, Image } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Save, Trash2, AlertTriangle, Check, Image, Upload, Plus, X } from 'lucide-react'
 import useStore from '../store/useStore'
+import { DEFAULT_PHOTOS } from '../components/BackgroundPhoto'
 
 const BASE = import.meta.env.BASE_URL
 
-const BG_PHOTOS = [
-  { id: 'auto', label: 'Auto', thumb: null },
-  { id: 'hero-church.jpg', label: 'Crkva' },
-  { id: 'waterfall-couple.jpg', label: 'Vodopad' },
-  { id: 'black-beach.jpg', label: 'Crna plaža' },
-  { id: 'reykjavik.jpg', label: 'Reykjavik' },
-  { id: 'waterfall-behind.jpg', label: 'Iza vodopada' },
-  { id: 'waterfall-reflection.jpg', label: 'Odraz' },
-]
+function compressImage(file, cb) {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const img = new window.Image()
+    img.onload = () => {
+      const MAX = 1600
+      let { width: w, height: h } = img
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round((h * MAX) / w); w = MAX }
+        else { w = Math.round((w * MAX) / h); h = MAX }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      cb(canvas.toDataURL('image/jpeg', 0.85))
+    }
+    img.src = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
 
 const inputCls =
   'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white placeholder-slate-400'
@@ -23,8 +35,12 @@ export default function Settings() {
   const resetAll = useStore((s) => s.resetAll)
   const bgEnabled = useStore((s) => s.bgEnabled)
   const bgSelectedPhoto = useStore((s) => s.bgSelectedPhoto)
+  const userBgPhotos = useStore((s) => s.userBgPhotos)
   const setBgEnabled = useStore((s) => s.setBgEnabled)
   const setBgSelectedPhoto = useStore((s) => s.setBgSelectedPhoto)
+  const addUserBgPhoto = useStore((s) => s.addUserBgPhoto)
+  const removeUserBgPhoto = useStore((s) => s.removeUserBgPhoto)
+  const uploadRef = useRef()
 
   const [name1, setName1] = useState(couple.name1)
   const [name2, setName2] = useState(couple.name2)
@@ -114,7 +130,7 @@ export default function Settings() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-semibold text-slate-700 flex items-center gap-2"><Image size={16} className="text-forest" /> Pozadinska fotografija</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Island slike kao pozadina stranica</p>
+            <p className="text-xs text-slate-400 mt-0.5">Menja se svakih 60 sekundi • random redosled</p>
           </div>
           <button
             onClick={() => setBgEnabled(!bgEnabled)}
@@ -125,32 +141,91 @@ export default function Settings() {
         </div>
 
         {bgEnabled && (
-          <div className="space-y-3">
-            <p className="text-xs text-slate-500">Odaberite fotografiju ili pustite da se automatski menjaju</p>
-            <div className="grid grid-cols-4 gap-2">
-              {BG_PHOTOS.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setBgSelectedPhoto(p.id)}
-                  className={`relative rounded-xl overflow-hidden border-2 transition-all ${bgSelectedPhoto === p.id ? 'border-forest shadow-md' : 'border-transparent hover:border-linen'}`}
-                >
-                  {p.id === 'auto' ? (
-                    <div className="h-16 bg-gradient-to-br from-forest to-gold/60 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">AUTO</span>
-                    </div>
-                  ) : (
+          <div className="space-y-4">
+            {/* Auto / pick */}
+            <div className="flex gap-2">
+              <button onClick={() => setBgSelectedPhoto('auto')} className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all border ${bgSelectedPhoto === 'auto' ? 'bg-forest text-white border-forest' : 'border-linen text-ink-light hover:bg-parchment'}`}>
+                🔀 Auto (sve slike)
+              </button>
+            </div>
+
+            {/* Default Iceland photos */}
+            <div>
+              <p className="text-xs font-semibold text-mist uppercase tracking-wider mb-2">Island — podrazumevane</p>
+              <div className="grid grid-cols-3 gap-2">
+                {DEFAULT_PHOTOS.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setBgSelectedPhoto(p.id)}
+                    className={`relative rounded-xl overflow-hidden border-2 transition-all ${bgSelectedPhoto === p.id ? 'border-forest shadow-md' : 'border-transparent hover:border-linen'}`}
+                  >
                     <img src={`${BASE}images/${p.id}`} alt={p.label} className="w-full h-16 object-cover" />
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] py-0.5 text-center truncate px-1">
-                    {p.label}
-                  </div>
-                  {bgSelectedPhoto === p.id && (
-                    <div className="absolute top-1 right-1 w-4 h-4 bg-forest rounded-full flex items-center justify-center">
-                      <Check size={9} className="text-white" />
-                    </div>
-                  )}
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] py-0.5 text-center truncate px-1">{p.label}</div>
+                    {bgSelectedPhoto === p.id && (
+                      <div className="absolute top-1 right-1 w-4 h-4 bg-forest rounded-full flex items-center justify-center">
+                        <Check size={9} className="text-white" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* User uploaded photos */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-mist uppercase tracking-wider">Vaše fotografije ({(userBgPhotos || []).length})</p>
+                <button
+                  onClick={() => uploadRef.current?.click()}
+                  className="flex items-center gap-1 text-xs text-forest hover:text-forest-light font-medium border border-forest/30 px-2.5 py-1 rounded-lg hover:bg-forest/5 transition-colors"
+                >
+                  <Plus size={11} /> Dodaj svoju
                 </button>
-              ))}
+                <input
+                  ref={uploadRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    Array.from(e.target.files || []).forEach((file) => {
+                      compressImage(file, (url) => addUserBgPhoto({ url, label: file.name.replace(/\.[^.]+$/, '') }))
+                    })
+                    e.target.value = ''
+                  }}
+                />
+              </div>
+              {(userBgPhotos || []).length === 0 ? (
+                <button
+                  onClick={() => uploadRef.current?.click()}
+                  className="w-full h-20 rounded-xl border-2 border-dashed border-linen hover:border-terra/40 flex flex-col items-center justify-center gap-1 text-mist hover:text-terra transition-colors"
+                >
+                  <Upload size={18} />
+                  <span className="text-xs">Dodajte vaše zajedničke slike ili pejzaže</span>
+                </button>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {(userBgPhotos || []).map((p) => (
+                    <div key={p.id} className={`relative rounded-xl overflow-hidden border-2 transition-all ${bgSelectedPhoto === p.id ? 'border-forest shadow-md' : 'border-transparent hover:border-linen'}`}>
+                      <button onClick={() => setBgSelectedPhoto(p.id)} className="w-full">
+                        <img src={p.url} alt={p.label} className="w-full h-16 object-cover" />
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] py-0.5 text-center truncate px-1">{p.label}</div>
+                      </button>
+                      <button
+                        onClick={() => removeUserBgPhoto(p.id)}
+                        className="absolute top-1 left-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+                      >
+                        <X size={9} className="text-white" />
+                      </button>
+                      {bgSelectedPhoto === p.id && (
+                        <div className="absolute top-1 right-1 w-4 h-4 bg-forest rounded-full flex items-center justify-center">
+                          <Check size={9} className="text-white" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

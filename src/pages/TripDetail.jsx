@@ -4,7 +4,7 @@ import { differenceInDays, parseISO, format } from 'date-fns'
 import {
   ArrowLeft, Trash2, MapPin, Calendar, LayoutDashboard,
   PlaneTakeoff, Building2, CalendarDays, Wallet,
-  Backpack, FileText, Globe, Star, Camera, CheckSquare, Menu, X, Heart, Users,
+  Backpack, FileText, Globe, Star, Camera, CheckSquare, Menu, X, Heart, Users, Images,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import { useDestinationData, getDestinationTheme } from '../hooks/useDestinationData'
@@ -21,6 +21,7 @@ import PlacesSection from '../sections/PlacesSection'
 import MemoriesSection from '../sections/MemoriesSection'
 import PreTripSection from '../sections/PreTripSection'
 import FamilyWallSection from '../sections/FamilyWallSection'
+import GallerySection from '../sections/GallerySection'
 
 const NAV = [
   { id: 'overview', label: 'Pregled', icon: LayoutDashboard },
@@ -36,6 +37,7 @@ const NAV = [
   { id: 'pretrip', label: 'Pre-trip lista', icon: CheckSquare },
   { id: 'review', label: 'Utisci & ocene', icon: Heart },
   { id: 'familywall', label: 'Porodični zid', icon: Users },
+  { id: 'gallery', label: 'Galerija', icon: Images },
 ]
 
 export default function TripDetail() {
@@ -80,6 +82,7 @@ export default function TripDetail() {
       const total = (trip.familyWall?.guestPosts?.length || 0) + (trip.familyWall?.dailyUpdates?.length || 0)
       return total || null
     }
+    if (navId === 'gallery') return (trip.gallery?.length || 0) || null
     return null
   }
 
@@ -194,6 +197,7 @@ export default function TripDetail() {
           {active === 'pretrip' && <PreTripSection trip={trip} />}
           {active === 'review' && <ReviewSection trip={trip} />}
           {active === 'familywall' && <FamilyWallSection trip={trip} />}
+          {active === 'gallery' && <GallerySection trip={trip} />}
         </main>
       </div>
 
@@ -214,6 +218,7 @@ export default function TripDetail() {
             {active === 'pretrip' && <PreTripSection trip={trip} />}
             {active === 'review' && <ReviewSection trip={trip} />}
             {active === 'familywall' && <FamilyWallSection trip={trip} />}
+            {active === 'gallery' && <GallerySection trip={trip} />}
           </>
         )}
       </div>

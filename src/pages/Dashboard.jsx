@@ -27,22 +27,22 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Hero — Iceland black church */}
+      {/* Hero — waterfall couple */}
       <div
         className="relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-xl"
         style={{
-          backgroundImage: `url(${BASE}images/hero-church.jpg)`,
+          backgroundImage: `url(${BASE}images/waterfall-couple.jpg)`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center 70%',
+          backgroundPosition: 'center 40%',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/35 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-9">
-          <p className="text-white/55 text-xs font-medium uppercase tracking-[0.2em] mb-2">Naše putovanje</p>
+          <p className="text-white/55 text-xs font-medium uppercase tracking-[0.2em] mb-2">✈️ Naša priča</p>
           <h1 className="font-display text-4xl md:text-5xl font-bold text-white leading-tight mb-1.5">
             {couple.name1} & {couple.name2}
           </h1>
-          <p className="text-white/60 text-base">Beležimo svaki korak zajedno</p>
+          <p className="text-white/70 text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
         </div>
         <Link
           to="/trips/new"
