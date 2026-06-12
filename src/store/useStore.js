@@ -46,6 +46,17 @@ const EMPTY_LOCAL_INFO = () => ({
   language: '',
 })
 
+const EMPTY_REVIEW = () => ({
+  overallRating: 0,
+  summary: '',
+  bestMoment: '',
+  wouldChange: '',
+  wouldGoAgain: '',
+  ratings: { hotel: 0, food: 0, transport: 0, activities: 0, valueForMoney: 0 },
+  photos: [],
+  publishedDate: '',
+})
+
 function newTrip(data) {
   return {
     ...data,
@@ -72,6 +83,8 @@ function newTrip(data) {
     places: [],
     // memories
     memories: [],
+    // review
+    review: EMPTY_REVIEW(),
     // pre-trip
     preTrip: DEFAULT_PRETIP.map((t) => ({ ...t, id: crypto.randomUUID(), done: false, deadline: '', notes: '' })),
     notes: '',
@@ -353,6 +366,38 @@ const useStore = create(
         set((s) => ({
           trips: s.trips.map((t) =>
             t.id !== tripId ? t : { ...t, preTrip: t.preTrip.map((p) => p.id === taskId ? { ...p, ...updates } : p) }
+          ),
+        })),
+
+      /* ── REVIEW ── */
+      updateReview: (tripId, data) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, review: { ...(t.review || EMPTY_REVIEW()), ...data } }
+          ),
+        })),
+      addReviewPhoto: (tripId, photo) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              review: {
+                ...(t.review || EMPTY_REVIEW()),
+                photos: [...(t.review?.photos || []), { ...photo, id: crypto.randomUUID() }],
+              },
+            }
+          ),
+        })),
+      deleteReviewPhoto: (tripId, photoId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              review: {
+                ...(t.review || EMPTY_REVIEW()),
+                photos: (t.review?.photos || []).filter((p) => p.id !== photoId),
+              },
+            }
           ),
         })),
 

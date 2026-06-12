@@ -4,9 +4,10 @@ import { differenceInDays, parseISO, format } from 'date-fns'
 import {
   ArrowLeft, Trash2, MapPin, Calendar, LayoutDashboard,
   PlaneTakeoff, Building2, CalendarDays, Wallet,
-  Backpack, FileText, Globe, Star, Camera, CheckSquare, Menu, X,
+  Backpack, FileText, Globe, Star, Camera, CheckSquare, Menu, X, Heart,
 } from 'lucide-react'
 import useStore from '../store/useStore'
+import ReviewSection from '../sections/ReviewSection'
 import OverviewSection from '../sections/OverviewSection'
 import FlightsSection from '../sections/FlightsSection'
 import AccommodationSection from '../sections/AccommodationSection'
@@ -40,6 +41,7 @@ const NAV = [
   { id: 'places', label: 'Mesta & restorani', icon: Star },
   { id: 'memories', label: 'Uspomene', icon: Camera },
   { id: 'pretrip', label: 'Pre-trip lista', icon: CheckSquare },
+  { id: 'review', label: 'Utisci & ocene', icon: Heart },
 ]
 
 export default function TripDetail() {
@@ -78,6 +80,7 @@ export default function TripDetail() {
     if (id === 'accommodation') return (trip.accommodations || []).length || null
     if (id === 'places') return (trip.places || []).length || null
     if (id === 'memories') return (trip.memories || []).length || null
+    if (id === 'review') return (trip.review?.overallRating > 0) ? '⭐' : null
     return null
   }
 
@@ -182,6 +185,7 @@ export default function TripDetail() {
           {active === 'places' && <PlacesSection trip={trip} />}
           {active === 'memories' && <MemoriesSection trip={trip} />}
           {active === 'pretrip' && <PreTripSection trip={trip} />}
+          {active === 'review' && <ReviewSection trip={trip} />}
         </main>
       </div>
 
@@ -200,6 +204,7 @@ export default function TripDetail() {
             {active === 'places' && <PlacesSection trip={trip} />}
             {active === 'memories' && <MemoriesSection trip={trip} />}
             {active === 'pretrip' && <PreTripSection trip={trip} />}
+            {active === 'review' && <ReviewSection trip={trip} />}
           </>
         )}
       </div>
