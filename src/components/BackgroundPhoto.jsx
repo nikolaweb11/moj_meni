@@ -59,7 +59,7 @@ export default function BackgroundPhoto() {
         backgroundImage: `url(${getPhotoUrl(photo)})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        opacity: fading ? 0 : 0.14,
+        opacity: fading ? 0 : 0.22,
         transition: 'opacity 0.9s ease-in-out',
       }}
     />

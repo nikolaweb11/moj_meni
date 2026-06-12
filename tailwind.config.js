@@ -4,13 +4,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        parchment: '#F5EBDB',
-        ink: { DEFAULT: '#1A1814', light: '#3D3830' },
-        forest: { DEFAULT: '#2D4A3E', light: '#3D6B59', dark: '#1A2E27' },
-        terra: { DEFAULT: '#8B5033', light: '#A86A48' },
+        parchment: '#FEF0F4',
+        ink: { DEFAULT: '#2E1A24', light: '#7A4060' },
+        forest: { DEFAULT: '#C8486E', light: '#D85E82', dark: '#A03058' },
+        terra: { DEFAULT: '#E8956D', light: '#F0A882' },
         gold: { DEFAULT: '#C4892A', light: '#DDA040', dark: '#9E7020' },
-        linen: '#EAD9C6',
-        mist: '#96A89E',
+        linen: '#F8D8E2',
+        mist: '#C09AAC',
         amber: { warm: '#F0A855' },
       },
       fontFamily: {
