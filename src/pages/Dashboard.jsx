@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, MapPin, Calendar, Plane } from 'lucide-react'
+import { Plus, MapPin, Calendar, Plane, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format, parseISO, isAfter, isBefore, differenceInDays } from 'date-fns'
 import useStore from '../store/useStore'
 import { getDestinationTheme, useDestinationData } from '../hooks/useDestinationData'
@@ -10,53 +10,163 @@ function daysLabel(n) {
   return n === 1 ? '1 dan' : `${n} dana`
 }
 
-function RotatingHero({ couple }) {
-  const [idx, setIdx] = useState(() => Math.floor(Math.random() * ALL_PHOTOS.length))
-  const [fading, setFading] = useState(false)
+const BIBLE_VERSES = [
+  { text: '„Zato će čovek ostaviti oca svog i mater svoju i prionuće uz ženu svoju, i biće jedno telo."', ref: 'Postanje 2:24' },
+  { text: '„Gde ti pođeš, pođem i ja; i gde se ti zaustavlješ, zaustavim se i ja; tvoj narod je moj narod, i tvoj Bog moj Bog."', ref: 'Ruta 1:16' },
+  { text: '„Metni me kao pečat na srce svoje, kao pečat na mišicu svoju; jer je ljubav jaka kao smrt... Velike vode ne mogu ugasiti ljubavi, niti je reke mogu potopiti."', ref: 'Pesma nad pesmama 8:6–7' },
+  { text: '„Bolje je dvoje nego jedno, jer imaju dobru nagradu za trud svoj. Jer ako padnu, jedan će podignuti drugoga."', ref: 'Propovedač 4:9–10' },
+  { text: '„Ljubav je dugotrpeljiva, blagoutrobna je ljubav, ljubav ne zavidi, ljubav se ne hvališe, ne nadima se. Ne radi ništa što se ne pristoji, ne traži svoje, ne jeda se, ne misli o zlu."', ref: '1. Korinćanima 13:4–5' },
+  { text: '„Muževi, ljubite žene svoje, kao što i Hristos zavolijo crkvu i predao sebe za nju."', ref: 'Efescima 5:25' },
+  { text: '„A nad sve ovo obucite ljubav, koja je veza savršenstva. I mir Božiji da vlada u srcima vašim."', ref: 'Kološanima 3:14–15' },
+  { text: '„Nije dobro da je čovek sam; načiniću mu pomoć prema njemu."', ref: 'Postanje 2:18' },
+  { text: '„Nađoh onoga koga ljubi duša moja; uhvatih ga i ne pustih ga."', ref: 'Pesma nad pesmama 3:4' },
+  { text: '„Ko nađe ženu dobru, nađe dobro i dobija blagoslov od Gospoda."', ref: 'Priče 18:22' },
+  { text: '„Raduj se sa ženom mladosti svoje... neka te kiti njena ljubav svagda, i u njezinoj ljubavi budi svagda zanesen."', ref: 'Priče 5:18–19' },
+  { text: '„Ni smrt, ni život, ni anđeli, ni poglavarstva, ni sile, ni sadašnjost, ni budućnost, ni visina, ni dubina, neće moći nas rastaviti od ljubavi Božije."', ref: 'Rimljanima 8:38–39' },
+  { text: '„Draga moja je moja i ja sam njen, koji pase između ljiljana."', ref: 'Pesma nad pesmama 2:16' },
+  { text: '„Ljubav neka bude nepritvorena... U ljubavi bratskoj jedni drugima budite nežni, u poštovanju jedni druge predupređujte."', ref: 'Rimljanima 12:9–10' },
+  { text: '„I stvori Bog čoveka po obličju svome... muško i žensko stvori ih. I blagoslovi ih Bog."', ref: 'Postanje 1:27–28' },
+]
 
-  const advance = useCallback(() => {
-    setFading(true)
-    setTimeout(() => {
-      setIdx((i) => {
-        let next
-        do { next = Math.floor(Math.random() * ALL_PHOTOS.length) } while (next === i)
-        return next
-      })
-      setFading(false)
-    }, 900)
-  }, [])
+function HeroCarousel({ couple }) {
+  const trackRef = useRef()
+  const [lightbox, setLightbox] = useState(null)
+
+  const scrollTrack = (dir) => {
+    const el = trackRef.current
+    if (!el) return
+    const itemW = el.querySelector('button')?.offsetWidth || 96
+    el.scrollBy({ left: dir * (itemW + 12) * 4, behavior: 'smooth' })
+  }
+
+  const closeLightbox = useCallback(() => setLightbox(null), [])
+  const prevPhoto = useCallback((e) => { e?.stopPropagation(); setLightbox(i => Math.max(0, i - 1)) }, [])
+  const nextPhoto = useCallback((e) => { e?.stopPropagation(); setLightbox(i => Math.min(ALL_PHOTOS.length - 1, i + 1)) }, [])
 
   useEffect(() => {
-    const id = setInterval(advance, 60000)
-    return () => clearInterval(id)
-  }, [advance])
+    if (lightbox === null) return
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft') prevPhoto()
+      else if (e.key === 'ArrowRight') nextPhoto()
+      else if (e.key === 'Escape') closeLightbox()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox, prevPhoto, nextPhoto, closeLightbox])
+
+  const verse = lightbox !== null ? BIBLE_VERSES[lightbox % BIBLE_VERSES.length] : null
 
   return (
-    <div className="relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-xl">
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url(${ALL_PHOTOS[idx]})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: fading ? 0 : 1,
-          transition: 'opacity 0.9s ease-in-out',
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-9">
-        <p className="text-white/55 text-xs font-medium uppercase tracking-[0.2em] mb-2">✈️ Naša priča</p>
-        <h1 className="font-display text-4xl md:text-5xl font-bold text-white leading-tight mb-1.5">
+    <div className="space-y-5">
+      {/* Circles row */}
+      <div className="relative flex items-center gap-2">
+        <button
+          onClick={() => scrollTrack(-1)}
+          className="flex-shrink-0 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-ink-light hover:text-forest hover:shadow-lg transition-all border border-linen"
+        >
+          <ChevronLeft size={18} />
+        </button>
+
+        <div
+          ref={trackRef}
+          className="flex gap-3 overflow-x-hidden flex-1 py-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {ALL_PHOTOS.map((url, i) => (
+            <button
+              key={i}
+              onClick={() => setLightbox(i)}
+              className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-[3px] border-white shadow-md hover:border-forest hover:scale-105 hover:shadow-lg transition-all"
+            >
+              <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => scrollTrack(1)}
+          className="flex-shrink-0 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-ink-light hover:text-forest hover:shadow-lg transition-all border border-linen"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+
+      {/* Text below circles */}
+      <div className="text-center space-y-1">
+        <p className="text-xs font-medium uppercase tracking-[0.25em] text-mist">✈️ Naša priča</p>
+        <h1 className="font-display text-4xl md:text-5xl font-bold text-ink leading-tight">
           {couple.name1} & {couple.name2}
         </h1>
-        <p className="text-white/70 text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
+        <p className="text-ink-light/70 text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
+        <div className="pt-2">
+          <Link
+            to="/trips/new"
+            className="inline-flex items-center gap-1.5 bg-forest text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-forest-light transition-colors shadow-sm"
+          >
+            <Plus size={14} /> Novi odmor
+          </Link>
+        </div>
       </div>
-      <Link
-        to="/trips/new"
-        className="absolute top-5 right-5 flex items-center gap-1.5 bg-gold text-[#131918] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gold-light transition-colors shadow-lg"
-      >
-        <Plus size={15} /> Novi odmor
-      </Link>
+
+      {/* Lightbox */}
+      {lightbox !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+          style={{ backdropFilter: 'blur(24px)', backgroundColor: 'rgba(20,8,14,0.88)' }}
+          onClick={closeLightbox}
+        >
+          {/* Prev */}
+          {lightbox > 0 && (
+            <button
+              onClick={prevPhoto}
+              className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 text-white transition-colors z-10"
+            >
+              <ChevronLeft size={22} />
+            </button>
+          )}
+
+          <div
+            className="relative max-w-md w-full flex flex-col items-center gap-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={ALL_PHOTOS[lightbox]}
+              alt=""
+              className="w-full rounded-3xl shadow-2xl object-cover"
+              style={{ maxHeight: '58vh' }}
+            />
+            <div className="text-center px-2 max-w-sm">
+              <p className="font-display italic text-white/90 text-lg md:text-xl leading-relaxed">
+                {verse.text}
+              </p>
+              <p className="text-white/45 text-sm mt-3 tracking-wide">{verse.ref}</p>
+            </div>
+          </div>
+
+          {/* Next */}
+          {lightbox < ALL_PHOTOS.length - 1 && (
+            <button
+              onClick={nextPhoto}
+              className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 text-white transition-colors z-10"
+            >
+              <ChevronRight size={22} />
+            </button>
+          )}
+
+          {/* Close */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 text-white transition-colors"
+          >
+            <X size={18} />
+          </button>
+
+          {/* Counter */}
+          <p className="absolute bottom-4 text-white/35 text-xs">
+            {lightbox + 1} / {ALL_PHOTOS.length}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
@@ -78,7 +188,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <RotatingHero couple={couple} />
+      <HeroCarousel couple={couple} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
