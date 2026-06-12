@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Save, Trash2, AlertTriangle, Check, Image } from 'lucide-react'
+import { Save, Check, Image } from 'lucide-react'
 import useStore from '../store/useStore'
 
 const inputCls =
@@ -8,27 +8,18 @@ const inputCls =
 export default function Settings() {
   const couple = useStore((s) => s.couple)
   const setCouple = useStore((s) => s.setCouple)
-  const resetAll = useStore((s) => s.resetAll)
   const bgEnabled = useStore((s) => s.bgEnabled)
   const setBgEnabled = useStore((s) => s.setBgEnabled)
 
   const [name1, setName1] = useState(couple.name1)
   const [name2, setName2] = useState(couple.name2)
   const [saved, setSaved] = useState(false)
-  const [showReset, setShowReset] = useState(false)
 
   const handleSave = (e) => {
     e.preventDefault()
     setCouple(name1.trim() || 'Ti', name2.trim() || 'Ona')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
-  }
-
-  const handleReset = () => {
-    resetAll()
-    setShowReset(false)
-    setName1('Ti')
-    setName2('Ona')
   }
 
   return (
@@ -97,28 +88,6 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Danger zone */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
-        <h2 className="font-semibold text-red-600 mb-1">Opasna zona</h2>
-        <p className="text-sm text-mist mb-4">Ove akcije su nepovratne</p>
-        {showReset ? (
-          <div className="bg-red-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 text-red-600 mb-2">
-              <AlertTriangle size={16} />
-              <span className="font-semibold text-sm">Da li si siguran/na?</span>
-            </div>
-            <p className="text-sm text-ink-light mb-4">Sva putovanja, troškovi, liste za pakovanje i lista želja biće trajno izbrisani.</p>
-            <div className="flex gap-2">
-              <button onClick={handleReset} className="flex-1 bg-red-500 text-white text-sm py-2.5 rounded-xl hover:bg-red-600 transition-colors font-medium">Da, obriši sve</button>
-              <button onClick={() => setShowReset(false)} className="flex-1 border border-linen text-ink-light text-sm py-2.5 rounded-xl hover:bg-parchment transition-colors">Otkaži</button>
-            </div>
-          </div>
-        ) : (
-          <button onClick={() => setShowReset(true)} className="flex items-center gap-2 border border-red-200 text-red-500 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors">
-            <Trash2 size={15} /> Obriši sve podatke
-          </button>
-        )}
-      </div>
     </div>
   )
 }

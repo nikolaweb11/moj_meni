@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, MapPin, Calendar, Plane, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, MapPin, Calendar, Plane, X, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Trash2 } from 'lucide-react'
 import { format, parseISO, isAfter, isBefore, differenceInDays } from 'date-fns'
 import useStore from '../store/useStore'
 import { getDestinationTheme, useDestinationData } from '../hooks/useDestinationData'
@@ -28,20 +28,56 @@ const BIBLE_VERSES = [
   { text: '„I stvori Bog čoveka po obličju svome... muško i žensko stvori ih. I blagoslovi ih Bog."', ref: 'Postanje 1:27–28' },
 ]
 
+const TRAVEL_QUOTES = [
+  { text: '„Putovati je živeti."', ref: '— Hans Christian Andersen' },
+  { text: '„Svet je knjiga, a oni koji ne putuju čitaju samo jednu stranu."', ref: '— Sveti Avgustin' },
+  { text: '„Putovati s voljenom osobom pretvara i nepoznato mesto u dom."', ref: '— Sharyn McCrumb' },
+  { text: '„Jedini trezor koji ne može da se ukrade je bogatstvo iskustava."', ref: '— stara izreka' },
+  { text: '„Putnici nikada ne stignu na isti cilj — jer svako nosi sopstveni horizont u srcu."', ref: '— Martin Buber' },
+  { text: '„Lepotica putovanja nije u odredištu, već u svemu što se dogodi usput."', ref: '— neznanog autora' },
+  { text: '„Kad putujemo, shvatamo koliko je svet velik i koliko smo mi mali — i to oslobađa."', ref: '— neznanog autora' },
+  { text: '„Svako putovanje s voljenom osobom jeste i povratak kući."', ref: '— neznanog autora' },
+  { text: '„Nema lepšeg prizora nego dvoje srećnih ljudi koji zajedno gledaju u isti zalazak sunca."', ref: '— neznanog autora' },
+  { text: '„Putovanje nas uči da budemo zahvalni za sve što imamo — i za sve što nismo znali da smo željeli."', ref: '— Mary Anne Radmacher' },
+  { text: '„Jedini način da se otkrije granica mogućeg jeste da se malo ode iza nje."', ref: '— Arthur C. Clarke' },
+  { text: '„Dok putujemo, ne menjamo samo mesta — menjamo i sebe."', ref: '— Anatole France' },
+  { text: '„Putovanje s partnerom je najpouzdaniji test ljubavi — i najpouzdaniji izvor najlepših uspomena."', ref: '— neznanog autora' },
+  { text: '„Najdraže fotografije nisu one najsavršenije — već one koje pamte taj miris, taj smeh, taj trenutak."', ref: '— neznanog autora' },
+  { text: '„Svet je pun čuda. Treba samo izaći iz kuće."', ref: '— J.R.R. Tolkien' },
+]
+
+const REACTIONS = ['❤️', '😍', '😂', '😮', '😢', '🔥']
+
 function HeroCarousel({ couple }) {
   const trackRef = useRef()
   const [lightbox, setLightbox] = useState(null)
+  const [commentText, setCommentText] = useState('')
+  const photoInteractions = useStore((s) => s.photoInteractions)
+  const togglePhotoLike = useStore((s) => s.togglePhotoLike)
+  const togglePhotoReaction = useStore((s) => s.togglePhotoReaction)
+  const addPhotoComment = useStore((s) => s.addPhotoComment)
+  const deletePhotoComment = useStore((s) => s.deletePhotoComment)
 
   const scrollTrack = (dir) => {
     const el = trackRef.current
     if (!el) return
-    const itemW = el.querySelector('button')?.offsetWidth || 96
-    el.scrollBy({ left: dir * (itemW + 12) * 4, behavior: 'smooth' })
+    const itemW = (el.querySelector('button')?.offsetWidth || 96) + 12
+    const visibleCount = Math.floor(el.clientWidth / itemW) || 1
+    el.scrollBy({ left: dir * itemW * visibleCount, behavior: 'smooth' })
   }
 
-  const closeLightbox = useCallback(() => setLightbox(null), [])
+  const closeLightbox = useCallback(() => {
+    setLightbox(null)
+    setCommentText('')
+  }, [])
   const prevPhoto = useCallback((e) => { e?.stopPropagation(); setLightbox(i => Math.max(0, i - 1)) }, [])
   const nextPhoto = useCallback((e) => { e?.stopPropagation(); setLightbox(i => Math.min(ALL_PHOTOS.length - 1, i + 1)) }, [])
+
+  useEffect(() => {
+    if (lightbox === null) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [lightbox])
 
   useEffect(() => {
     if (lightbox === null) return
@@ -54,7 +90,19 @@ function HeroCarousel({ couple }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [lightbox, prevPhoto, nextPhoto, closeLightbox])
 
-  const verse = lightbox !== null ? BIBLE_VERSES[lightbox % BIBLE_VERSES.length] : null
+  const getQuote = (idx) => {
+    if (idx % 2 === 0) return BIBLE_VERSES[Math.floor(idx / 2) % BIBLE_VERSES.length]
+    return TRAVEL_QUOTES[Math.floor(idx / 2) % TRAVEL_QUOTES.length]
+  }
+
+  const interactions = lightbox !== null ? (photoInteractions?.[lightbox] || { liked: false, reactions: [], comments: [] }) : null
+
+  const handleComment = (e) => {
+    e.preventDefault()
+    if (!commentText.trim() || lightbox === null) return
+    addPhotoComment(lightbox, commentText.trim(), couple.name1 || 'Ti')
+    setCommentText('')
+  }
 
   return (
     <div className="space-y-5">
@@ -62,21 +110,27 @@ function HeroCarousel({ couple }) {
       <div className="relative flex items-center gap-2">
         <button
           onClick={() => scrollTrack(-1)}
-          className="flex-shrink-0 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-ink-light hover:text-forest hover:shadow-lg transition-all border border-linen"
+          className="flex-shrink-0 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-ink-light hover:text-forest hover:shadow-lg transition-all border border-linen z-10"
         >
           <ChevronLeft size={18} />
         </button>
 
         <div
           ref={trackRef}
-          className="flex gap-3 overflow-x-hidden flex-1 py-2"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex gap-3 flex-1 py-2"
+          style={{
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
         >
           {ALL_PHOTOS.map((url, i) => (
             <button
               key={i}
               onClick={() => setLightbox(i)}
-              className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-[3px] border-white shadow-md hover:border-forest hover:scale-105 hover:shadow-lg transition-all"
+              className="flex-shrink-0 w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-[3px] border-white shadow-md hover:border-forest hover:scale-105 hover:shadow-lg transition-all"
+              style={{ scrollSnapAlign: 'start' }}
             >
               <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" />
             </button>
@@ -85,7 +139,7 @@ function HeroCarousel({ couple }) {
 
         <button
           onClick={() => scrollTrack(1)}
-          className="flex-shrink-0 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-ink-light hover:text-forest hover:shadow-lg transition-all border border-linen"
+          className="flex-shrink-0 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center text-ink-light hover:text-forest hover:shadow-lg transition-all border border-linen z-10"
         >
           <ChevronRight size={18} />
         </button>
@@ -98,48 +152,132 @@ function HeroCarousel({ couple }) {
           {couple.name1} & {couple.name2}
         </h1>
         <p className="text-ink-light/70 text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
-        <div className="pt-2">
-          <Link
-            to="/trips/new"
-            className="inline-flex items-center gap-1.5 bg-forest text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-forest-light transition-colors shadow-sm"
-          >
-            <Plus size={14} /> Novi odmor
-          </Link>
-        </div>
       </div>
 
       {/* Lightbox */}
       {lightbox !== null && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-          style={{ backdropFilter: 'blur(24px)', backgroundColor: 'rgba(20,8,14,0.88)' }}
-          onClick={closeLightbox}
+          className="fixed inset-0 z-[100] flex"
+          style={{ backgroundColor: 'rgba(14,5,10,0.95)', backdropFilter: 'blur(20px)' }}
         >
           {/* Prev */}
           {lightbox > 0 && (
             <button
               onClick={prevPhoto}
-              className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 text-white transition-colors z-10"
+              className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 text-white transition-colors z-10"
             >
               <ChevronLeft size={22} />
             </button>
           )}
 
-          <div
-            className="relative max-w-md w-full flex flex-col items-center gap-5"
-            onClick={(e) => e.stopPropagation()}
+          {/* Close */}
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 text-white transition-colors z-10"
           >
-            <img
-              src={ALL_PHOTOS[lightbox]}
-              alt=""
-              className="w-full rounded-3xl shadow-2xl object-cover"
-              style={{ maxHeight: '58vh' }}
-            />
-            <div className="text-center px-2 max-w-sm">
-              <p className="font-display italic text-white/90 text-lg md:text-xl leading-relaxed">
-                {verse.text}
-              </p>
-              <p className="text-white/45 text-sm mt-3 tracking-wide">{verse.ref}</p>
+            <X size={18} />
+          </button>
+
+          {/* Counter */}
+          <p className="absolute top-5 left-1/2 -translate-x-1/2 text-white/40 text-xs z-10">
+            {lightbox + 1} / {ALL_PHOTOS.length}
+          </p>
+
+          {/* Main content */}
+          <div className="flex flex-col md:flex-row w-full h-full overflow-y-auto md:overflow-hidden">
+            {/* Photo side */}
+            <div className="flex-shrink-0 md:flex-1 flex items-center justify-center p-6 pt-16 md:pt-6">
+              <div className="w-full max-w-sm md:max-w-md" onClick={(e) => e.stopPropagation()}>
+                <img
+                  src={ALL_PHOTOS[lightbox]}
+                  alt=""
+                  className="w-full rounded-3xl shadow-2xl object-cover"
+                  style={{ maxHeight: '55vh' }}
+                />
+                {/* Quote */}
+                <div className="text-center px-2 mt-5 max-w-sm mx-auto">
+                  <p className="font-display italic text-white/85 text-base md:text-lg leading-relaxed">
+                    {getQuote(lightbox).text}
+                  </p>
+                  <p className="text-white/40 text-xs mt-2 tracking-wide">{getQuote(lightbox).ref}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Interactions side */}
+            <div
+              className="md:w-80 bg-white/5 border-t md:border-t-0 md:border-l border-white/10 flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Like + reactions */}
+              <div className="p-4 border-b border-white/10 space-y-3">
+                <button
+                  onClick={() => togglePhotoLike(lightbox)}
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${interactions?.liked ? 'text-red-400' : 'text-white/60 hover:text-white/90'}`}
+                >
+                  <Heart size={20} fill={interactions?.liked ? 'currentColor' : 'none'} />
+                  {interactions?.liked ? 'Lajkovano' : 'Lajkuj'}
+                </button>
+                <div className="flex gap-2 flex-wrap">
+                  {REACTIONS.map((emoji) => {
+                    const active = interactions?.reactions?.includes(emoji)
+                    return (
+                      <button
+                        key={emoji}
+                        onClick={() => togglePhotoReaction(lightbox, emoji)}
+                        className={`text-xl rounded-full px-2 py-1 transition-all ${active ? 'bg-white/20 scale-110' : 'hover:bg-white/10 opacity-60 hover:opacity-100'}`}
+                      >
+                        {emoji}
+                      </button>
+                    )
+                  })}
+                </div>
+                {interactions?.reactions?.length > 0 && (
+                  <p className="text-white/50 text-xs">{interactions.reactions.join(' ')}</p>
+                )}
+              </div>
+
+              {/* Comments */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+                {(!interactions?.comments || interactions.comments.length === 0) && (
+                  <p className="text-white/30 text-sm text-center mt-4">
+                    <MessageCircle size={20} className="mx-auto mb-2 opacity-40" />
+                    Nema komentara još
+                  </p>
+                )}
+                {interactions?.comments?.map((c) => (
+                  <div key={c.id} className="group flex gap-2">
+                    <div className="flex-1 bg-white/8 rounded-2xl px-3 py-2">
+                      <p className="text-white/90 text-xs font-semibold mb-0.5">{c.author}</p>
+                      <p className="text-white/70 text-sm leading-snug">{c.text}</p>
+                    </div>
+                    <button
+                      onClick={() => deletePhotoComment(lightbox, c.id)}
+                      className="opacity-0 group-hover:opacity-100 self-center text-white/30 hover:text-red-400 transition-all"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Comment input */}
+              <form onSubmit={handleComment} className="p-3 border-t border-white/10 flex gap-2">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Dodaj komentar..."
+                  className="flex-1 bg-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:bg-white/15 transition-colors"
+                />
+                <button
+                  type="submit"
+                  disabled={!commentText.trim()}
+                  className="w-9 h-9 rounded-xl bg-forest flex items-center justify-center disabled:opacity-30 hover:bg-forest-light transition-colors flex-shrink-0"
+                >
+                  <Send size={14} className="text-white" />
+                </button>
+              </form>
             </div>
           </div>
 
@@ -147,24 +285,11 @@ function HeroCarousel({ couple }) {
           {lightbox < ALL_PHOTOS.length - 1 && (
             <button
               onClick={nextPhoto}
-              className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 text-white transition-colors z-10"
+              className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 text-white transition-colors z-10"
             >
               <ChevronRight size={22} />
             </button>
           )}
-
-          {/* Close */}
-          <button
-            onClick={closeLightbox}
-            className="absolute top-4 right-4 w-10 h-10 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 text-white transition-colors"
-          >
-            <X size={18} />
-          </button>
-
-          {/* Counter */}
-          <p className="absolute bottom-4 text-white/35 text-xs">
-            {lightbox + 1} / {ALL_PHOTOS.length}
-          </p>
         </div>
       )}
     </div>

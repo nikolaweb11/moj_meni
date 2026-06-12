@@ -327,15 +327,84 @@ export function usePlaceSuggestions(destination) {
 }
 
 // ── Flight suggestions ────────────────────────────────────────────────────────
-const trstenikTip = {
+const TRSTENIK_TIP = {
   icon: '🚗',
   title: 'Polazak iz Trstenik → aerodrom BEG',
   description: 'Trstenik do aerodroma "Nikola Tesla" (BEG): ~170 km, oko 1h45min vožnje autoputem A1/E75 prema Beogradu. Alternativa: autobus Trstenik–Beograd AS (~3h, ~600 RSD) + taksi/Bolt do aerodroma (~800 RSD). Preporučujemo polazak najmanje 4h pre leta.',
 }
 
+function isSerbiaDestination(d) {
+  return /beograd|belgrade|novi sad|niš|nis|subotica|kragujevac|zlatibor|kopaonik|tara|fruška gora|vrnjačka|sokobanja|palic|palić|divčibare|divcibare|srbija|serbia/.test(d)
+}
+
+function isDriveableNeighbor(d) {
+  return /hrvatska|croatia|dubrovnik|split|hvar|zagreb|pula|rovinj|crna gora|montenegro|kotor|budva|tivat|podgorica|bosna|sarajevo|mostar|banja luka|makedonija|macedonia|skoplje|skopje|bugarska|bulgaria|sofija|sofia|rumunija|romania|bukurešt|bucharest|mađarska|hungary|budimpesta|budapest|slovenija|slovenia|ljubljana|grčka|greece|atina|athens|solun|thessaloniki|albanija|albania|tirana|kosovo|priština|pristina/.test(d)
+}
+
 export function getFlightSuggestions(destination) {
   const type = inferDestType(destination)
   const d = (destination || '').toLowerCase()
+
+  if (isSerbiaDestination(d)) {
+    return [
+      {
+        icon: '🚗',
+        title: 'Vožnja kolima iz Trstenik',
+        description: 'Trstenik je odlična polazna tačka za sve destinacije u Srbiji. Autoput A1/E75 (Moravski koridor) nudi brzu i udobnu vožnju prema severu ili jugu. Benzin, parking i putarine su jedini troškovi.',
+      },
+      {
+        icon: '🚌',
+        title: 'Autobus iz Trstenik',
+        description: 'Trstenik ima direktne autobuske linije ka Beogradu, Nišu, Novom Sadu i drugim gradovima. Polasci nekoliko puta dnevno. Kupovina karte na autobuskoj stanici ili online (FlixBus, BAS).',
+      },
+      {
+        icon: '📍',
+        title: 'Google Maps ruta',
+        description: 'Za preciznu navigaciju koristite Google Maps sa startom u Trsteniku. Aplikacija prikazuje aktuelno stanje saobraćaja, radove na putu i alternativne rute u realnom vremenu.',
+      },
+      {
+        icon: '⛽',
+        title: 'Saveti za vožnju po Srbiji',
+        description: 'Benzinske pumpe NIS Petrol i OMV su rasprostranjene duž svih magistrala. E-toll nalepnica je obavezna za autoput — kupite na granici ili NIS pumpama. Autoputing između srpskih gradova su odlično održavani.',
+      },
+    ]
+  }
+
+  if (isDriveableNeighbor(d)) {
+    const isHrvatskaOrMontenegro = /hrvatska|croatia|dubrovnik|split|hvar|zagreb|crna gora|montenegro|kotor|budva|tivat/.test(d)
+    const driveTime = isHrvatskaOrMontenegro
+      ? 'Dubrovnik ~5h, Split ~5.5h, Zagreb ~4.5h, Kotor ~4h, Budva ~4.5h od Trstenik.'
+      : 'Budimpešta ~4h, Sarajevo ~3.5h, Sofija ~3.5h, Skoplje ~3h od Trstenik.'
+    return [
+      {
+        icon: '🚗',
+        title: 'Vožnja kolima iz Trstenik',
+        description: `Trstenik je pogodna polazna tačka za region. ${driveTime} Autoput A1 prema Beogradu, zatim nastavak prema odredištu. Međunarodna zelena karta osiguranja je obavezna.`,
+      },
+      {
+        icon: '🚌',
+        title: 'Autobus — direktne linije',
+        description: 'Beogradska autobuska stanica (BAS) ima direktne linije ka svim regionalnim prestonicama i letovištima. Trstenik → Beograd AS (~3h, ~600 RSD), zatim direktan autobus do odredišta.',
+      },
+      {
+        icon: '✈️',
+        title: 'Let iz BEG kao alternativa',
+        description: 'Za duže destinacije ili kad autobus nije pogodan: Trstenik → aerodrom BEG (~1h45min kolima ili 3h autobusom). Wizz Air, Air Serbia i Ryanair nude regionalne letove.',
+      },
+      {
+        icon: '🗺️',
+        title: 'Granični prelazi i dokumenta',
+        description: isHrvatskaOrMontenegro
+          ? 'Za Hrvatsku i Crnu Goru dovoljna je lična karta. Granični prelazi: Horgoš (Mađarska), Batrovci (Hrvatska), Jabuka (Crna Gora). Proverite gužve na app.amss.org.rs.'
+          : 'Lična karta je dovoljna za sve zemlje regiona (BiH, MK, BG, HU). Proverite ažurna pravila na sajtu MUP-a pre putovanja.',
+      },
+      {
+        icon: '🔔',
+        title: 'Postavite alert za cene letova',
+        description: 'Google Flights i Skyscanner nude obaveštenja za pad cena. Pratite iste letove nedelju-dve pre kupovine za regionalne linije.',
+      },
+    ]
+  }
 
   const isRome = /rim|rome|roma|italija|italy/.test(d)
   const isParis = /pariz|paris|francuska|france/.test(d)
@@ -379,7 +448,7 @@ export function getFlightSuggestions(destination) {
       ? 'Iz aerodroma Keflavik (KEF) do Reykjavika ide Flybus (~50€) ili taksi (~130€). Rent a car je preporučljiv za obilazak Islanda — Ring Road zahteva vozilo.'
       : 'Većina skandinavskih gradova ima odličan javni prevoz od aerodroma — metro, ekspresni voz ili autobus do centra za 15-25€.'
     return [
-      trstenikTip,
+      TRSTENIK_TIP,
       {
         icon: '✈️',
         title: `Letovi do ${dest}`,
@@ -407,7 +476,7 @@ export function getFlightSuggestions(destination) {
   if (type === 'tropical') {
     const dest = isBangkok ? 'Bangkok (BKK/DMK)' : isBali ? 'Bali (DPS — Ngurah Rai)' : 'tropsku destinaciju'
     return [
-      trstenikTip,
+      TRSTENIK_TIP,
       {
         icon: '✈️',
         title: `Letovi do ${dest}`,
@@ -444,7 +513,7 @@ export function getFlightSuggestions(destination) {
   if (type === 'desert') {
     const destName = isDubai ? 'Dubai (DXB)' : 'Marakeš (RAK)'
     return [
-      trstenikTip,
+      TRSTENIK_TIP,
       {
         icon: '✈️',
         title: `Letovi do ${destName}`,
@@ -472,7 +541,7 @@ export function getFlightSuggestions(destination) {
 
   if (type === 'mountain') {
     return [
-      trstenikTip,
+      TRSTENIK_TIP,
       {
         icon: '✈️',
         title: 'Letovi za planinska odredišta',
@@ -522,7 +591,7 @@ export function getFlightSuggestions(destination) {
   }
 
   return [
-    trstenikTip,
+    TRSTENIK_TIP,
     {
       icon: '✈️',
       title: 'Dostupni letovi',
