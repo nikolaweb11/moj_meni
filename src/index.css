@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #fff1f2 0%, #fdf4ff 50%, #f0f9ff 100%);
+  min-height: 100vh;
+}
+
+.tab-active {
+  @apply bg-white text-slate-800 shadow-sm;
+}
