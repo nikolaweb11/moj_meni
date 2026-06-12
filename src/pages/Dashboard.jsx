@@ -1,21 +1,13 @@
 import { Link } from 'react-router-dom'
-import { Plus, MapPin, Calendar, Star, CheckCircle2, Plane } from 'lucide-react'
+import { Plus, MapPin, Calendar, Plane } from 'lucide-react'
 import { format, parseISO, isAfter, isBefore, differenceInDays } from 'date-fns'
 import useStore from '../store/useStore'
+import { getDestinationTheme } from '../hooks/useDestinationData'
 
-const GRADIENT_MAP = {
-  sunset: 'from-orange-400 to-rose-500',
-  ocean: 'from-blue-400 to-cyan-500',
-  forest: 'from-green-400 to-emerald-500',
-  lavender: 'from-purple-400 to-pink-500',
-  night: 'from-indigo-600 to-purple-700',
-  sand: 'from-yellow-400 to-amber-500',
-}
+const BASE = import.meta.env.BASE_URL
 
 function daysLabel(n) {
-  if (n === 1) return '1 dan'
-  if (n < 5) return `${n} dana`
-  return `${n} dana`
+  return n === 1 ? '1 dan' : `${n} dana`
 }
 
 export default function Dashboard() {
@@ -25,74 +17,58 @@ export default function Dashboard() {
   const upcoming = trips
     .filter((t) => isAfter(parseISO(t.startDate), today))
     .sort((a, b) => parseISO(a.startDate) - parseISO(b.startDate))
-
   const ongoing = trips.filter(
     (t) => !isAfter(parseISO(t.startDate), today) && !isBefore(parseISO(t.endDate), today)
   )
-
   const completed = trips
     .filter((t) => isBefore(parseISO(t.endDate), today))
     .sort((a, b) => parseISO(b.endDate) - parseISO(a.endDate))
-
   const bucketDone = bucketList.filter((i) => i.done).length
 
   return (
     <div className="space-y-8">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 p-8 md:p-12 text-white shadow-xl">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-8 text-8xl">✈️</div>
-          <div className="absolute bottom-4 right-32 text-6xl">🗺️</div>
-          <div className="absolute top-8 right-48 text-5xl">⭐</div>
-        </div>
-        <div className="relative">
-          <p className="text-rose-200 text-sm font-medium mb-1 uppercase tracking-wider">Dobrodošli</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-2">
-            {couple.name1} &amp; {couple.name2}
+      {/* Hero — Iceland black church */}
+      <div
+        className="relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-xl"
+        style={{
+          backgroundImage: `url(${BASE}images/hero-church.jpg)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 40%',
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/35 to-black/10" />
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-9">
+          <p className="text-white/55 text-xs font-medium uppercase tracking-[0.2em] mb-2">Naše putovanje</p>
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-white leading-tight mb-1.5">
+            {couple.name1} & {couple.name2}
           </h1>
-          <p className="text-rose-100 text-lg">Planiramo avanturu zajedno 💑</p>
+          <p className="text-white/60 text-base">Beležimo svaki korak zajedno</p>
         </div>
+        <Link
+          to="/trips/new"
+          className="absolute top-5 right-5 flex items-center gap-1.5 bg-gold text-[#131918] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gold-light transition-colors shadow-lg"
+        >
+          <Plus size={15} /> Novi odmor
+        </Link>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          emoji="✈️"
-          value={trips.length}
-          label="Putovanja"
-          color="bg-rose-50 text-rose-600"
-        />
-        <StatCard
-          emoji="📅"
-          value={upcoming.length}
-          label="Nadolazeće"
-          color="bg-purple-50 text-purple-600"
-        />
-        <StatCard
-          emoji="✅"
-          value={completed.length}
-          label="Završeno"
-          color="bg-green-50 text-green-600"
-        />
-        <StatCard
-          emoji="⭐"
-          value={bucketList.length - bucketDone}
-          label="Lista želja"
-          color="bg-amber-50 text-amber-600"
-        />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard value={trips.length} label="Putovanja" sub="ukupno" color="text-forest" />
+        <StatCard value={upcoming.length} label="Nadolazeće" sub="planiranih" color="text-gold" />
+        <StatCard value={completed.length} label="Završeno" sub="odmora" color="text-terra" />
+        <StatCard value={bucketList.length - bucketDone} label="Lista želja" sub="destinacija" color="text-mist" />
       </div>
 
-      {/* Ongoing trip */}
+      {/* Ongoing */}
       {ongoing.length > 0 && (
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
-            <h2 className="text-xl font-bold text-slate-800">Trenutno na putu 🌍</h2>
+          <div className="flex items-center gap-2.5 mb-4">
+            <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse flex-shrink-0" />
+            <h2 className="font-display text-xl font-semibold text-ink">Trenutno na putu</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            {ongoing.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
+            {ongoing.map((trip) => <TripCard key={trip.id} trip={trip} />)}
           </div>
         </section>
       )}
@@ -100,27 +76,16 @@ export default function Dashboard() {
       {/* Upcoming */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-slate-800">Nadolazeća putovanja</h2>
-          <Link
-            to="/trips/new"
-            className="flex items-center gap-1.5 bg-rose-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-rose-600 transition-colors"
-          >
-            <Plus size={15} /> Planiraj odmor
+          <h2 className="font-display text-xl font-semibold text-ink">Nadolazeća putovanja</h2>
+          <Link to="/trips/new" className="text-sm text-forest font-medium hover:text-forest-light transition-colors">
+            + Dodaj novo
           </Link>
         </div>
         {upcoming.length === 0 ? (
-          <EmptyState
-            icon="🗺️"
-            title="Nema planiranih putovanja"
-            subtitle="Dodaj vaš sledeći odmor i počni da planiraš"
-            cta="Planiraj odmor"
-            to="/trips/new"
-          />
+          <EmptyState title="Nema planiranih putovanja" subtitle="Dodaj vaš sledeći odmor i počni da planiraš" cta="Planiraj odmor" to="/trips/new" />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {upcoming.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
+            {upcoming.map((trip) => <TripCard key={trip.id} trip={trip} />)}
           </div>
         )}
       </section>
@@ -128,56 +93,32 @@ export default function Dashboard() {
       {/* Completed */}
       {completed.length > 0 && (
         <section>
-          <h2 className="text-xl font-bold text-slate-800 mb-4">Prošla putovanja</h2>
+          <h2 className="font-display text-xl font-semibold text-ink mb-4">Prošla putovanja</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completed.map((trip) => (
-              <TripCard key={trip.id} trip={trip} completed />
-            ))}
+            {completed.map((trip) => <TripCard key={trip.id} trip={trip} completed />)}
           </div>
         </section>
       )}
 
-      {/* Bucket list preview */}
+      {/* Bucket list */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-slate-800">
-            Lista želja ⭐{' '}
-            <span className="text-base font-normal text-slate-400">
-              ({bucketDone}/{bucketList.length})
-            </span>
+          <h2 className="font-display text-xl font-semibold text-ink">
+            Lista želja <span className="text-base font-normal text-mist">({bucketDone}/{bucketList.length})</span>
           </h2>
-          <Link to="/bucket-list" className="text-purple-600 hover:text-purple-700 text-sm font-medium">
-            Vidi sve →
-          </Link>
+          <Link to="/bucket-list" className="text-sm text-forest font-medium hover:text-forest-light transition-colors">Vidi sve →</Link>
         </div>
         {bucketList.length === 0 ? (
-          <EmptyState
-            icon="⭐"
-            title="Lista želja je prazna"
-            subtitle="Dodaj destinacije iz snova"
-            cta="Dodaj destinaciju"
-            to="/bucket-list"
-          />
+          <EmptyState title="Lista želja je prazna" subtitle="Dodaj destinacije iz snova" cta="Dodaj destinaciju" to="/bucket-list" />
         ) : (
           <div className="flex flex-wrap gap-2">
             {bucketList.slice(0, 8).map((item) => (
-              <span
-                key={item.id}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
-                  item.done
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-purple-100 text-purple-700'
-                }`}
-              >
-                {item.done ? '✓ ' : ''}
-                {item.destination}, {item.country}
+              <span key={item.id} className={`px-4 py-2 rounded-full text-sm font-medium border ${item.done ? 'bg-forest/10 text-forest border-forest/20' : 'bg-white border-linen text-ink-light'}`}>
+                {item.done ? '✓ ' : ''}{item.destination}, {item.country}
               </span>
             ))}
             {bucketList.length > 8 && (
-              <Link
-                to="/bucket-list"
-                className="px-4 py-2 rounded-full text-sm font-medium bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-              >
+              <Link to="/bucket-list" className="px-4 py-2 rounded-full text-sm font-medium bg-white border border-linen text-mist hover:border-forest transition-colors">
                 +{bucketList.length - 8} više
               </Link>
             )}
@@ -189,47 +130,42 @@ export default function Dashboard() {
 }
 
 function TripCard({ trip, completed }) {
-  const gradient = GRADIENT_MAP[trip.color] || GRADIENT_MAP.sunset
-  const numDays =
-    differenceInDays(parseISO(trip.endDate), parseISO(trip.startDate)) + 1
+  const theme = getDestinationTheme(trip.destination)
+  const numDays = differenceInDays(parseISO(trip.endDate), parseISO(trip.startDate)) + 1
   const totalSpent = (trip.expenses || []).reduce((s, e) => s + Number(e.amount), 0)
 
   return (
     <Link
       to={`/trips/${trip.id}`}
-      className={`block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all group border border-slate-100 ${
-        completed ? 'opacity-80' : ''
-      }`}
+      className={`group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-linen hover:-translate-y-0.5 ${completed ? 'opacity-80' : ''}`}
     >
-      <div className={`h-28 bg-gradient-to-r ${gradient} flex items-end p-4 relative`}>
+      <div
+        className="h-36 flex items-end p-4 relative overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${theme.from}, ${theme.to})` }}
+      >
+        <div className="absolute right-3 top-2 text-7xl opacity-15 select-none leading-none">{theme.flag}</div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
         {completed && (
-          <span className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-0.5 rounded-full">
-            Završeno ✓
-          </span>
+          <span className="absolute top-3 left-3 bg-white/15 backdrop-blur-sm text-white/90 text-xs px-2.5 py-0.5 rounded-full font-medium">✓ Završeno</span>
         )}
-        <h3 className="text-white font-bold text-lg leading-tight group-hover:translate-x-0.5 transition-transform">
+        <h3 className="relative font-display text-white font-semibold text-lg leading-tight group-hover:translate-x-0.5 transition-transform">
           {trip.title}
         </h3>
       </div>
-      <div className="p-4">
-        <div className="flex items-center gap-1.5 text-slate-500 text-sm mb-1">
-          <MapPin size={13} className="text-rose-400" />
-          {trip.destination}
+      <div className="p-4 space-y-2.5">
+        <div className="flex items-center gap-1.5 text-ink-light text-sm">
+          <MapPin size={13} style={{ color: theme.accent }} />
+          <span>{trip.destination}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-slate-500 text-sm mb-2">
-          <Calendar size={13} className="text-purple-400" />
-          {format(parseISO(trip.startDate), 'dd.MM.yyyy')} —{' '}
-          {format(parseISO(trip.endDate), 'dd.MM.yyyy')}
+        <div className="flex items-center gap-1.5 text-ink-light/70 text-sm">
+          <Calendar size={13} className="text-mist" />
+          {format(parseISO(trip.startDate), 'dd.MM.yyyy')} — {format(parseISO(trip.endDate), 'dd.MM.yyyy')}
         </div>
-        <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-50">
-          <span className="flex items-center gap-1">
-            <Plane size={11} /> {daysLabel(numDays)}
-          </span>
+        <div className="flex items-center justify-between text-xs text-mist pt-2 border-t border-linen">
+          <span className="flex items-center gap-1"><Plane size={11} /> {daysLabel(numDays)}</span>
           {trip.budget?.total > 0 && (
             <span>
-              {totalSpent > 0
-                ? `${totalSpent.toFixed(0)} / ${trip.budget.total} ${trip.budget.currency}`
-                : `${trip.budget.total} ${trip.budget.currency}`}
+              {totalSpent > 0 ? `${totalSpent.toFixed(0)} / ${trip.budget.total} ${trip.budget.currency}` : `${trip.budget.total} ${trip.budget.currency}`}
             </span>
           )}
         </div>
@@ -238,30 +174,22 @@ function TripCard({ trip, completed }) {
   )
 }
 
-function StatCard({ emoji, value, label, color }) {
+function StatCard({ value, label, sub, color }) {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-      <div
-        className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3 ${color} bg-opacity-20`}
-      >
-        {emoji}
-      </div>
-      <div className="text-2xl font-extrabold text-slate-800">{value}</div>
-      <div className="text-sm text-slate-500">{label}</div>
+    <div className="bg-white rounded-2xl p-4 border border-linen shadow-sm">
+      <div className={`text-3xl font-display font-bold ${color} mb-0.5`}>{value}</div>
+      <div className="text-sm font-medium text-ink leading-tight">{label}</div>
+      <div className="text-xs text-mist">{sub}</div>
     </div>
   )
 }
 
-function EmptyState({ icon, title, subtitle, cta, to }) {
+function EmptyState({ title, subtitle, cta, to }) {
   return (
-    <div className="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-slate-200">
-      <div className="text-5xl mb-3">{icon}</div>
-      <p className="font-semibold text-slate-600 mb-1">{title}</p>
-      <p className="text-sm text-slate-400 mb-5">{subtitle}</p>
-      <Link
-        to={to}
-        className="inline-flex items-center gap-1.5 bg-rose-500 text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-rose-600 transition-colors"
-      >
+    <div className="text-center py-12 bg-white rounded-2xl border-2 border-dashed border-linen">
+      <p className="font-display font-semibold text-ink-light text-lg mb-1">{title}</p>
+      <p className="text-sm text-mist mb-5">{subtitle}</p>
+      <Link to={to} className="inline-flex items-center gap-1.5 bg-forest text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-forest-light transition-colors">
         <Plus size={15} /> {cta}
       </Link>
     </div>

@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { Plus, Trash2, Check, Star, MapPin, Clock, DollarSign } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Plus, Trash2, Check, MapPin, Clock, Upload, Link as LinkIcon, Image } from 'lucide-react'
 import useStore from '../store/useStore'
 
-const inp = 'border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white placeholder-slate-400 w-full'
+const inp = 'border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 bg-white placeholder-slate-400 w-full'
 
 const CATEGORIES = [
   { id: 'attraction', label: 'Atrakcija', emoji: '🏛️' },
@@ -23,7 +23,27 @@ const PRICE_LEVELS = [
   { id: '4', label: '€€€€', title: 'Luksuz' },
 ]
 
-const EMPTY = { name: '', category: 'restaurant', address: '', hours: '', priceLevel: '2', rating: '', notes: '', website: '', phone: '', mustSee: false, tip: '' }
+const EMPTY = { name: '', category: 'restaurant', address: '', hours: '', priceLevel: '2', rating: '', notes: '', website: '', phone: '', mustSee: false, tip: '', photoUrl: '' }
+
+function compressImage(file, cb) {
+  if (file.size > 10 * 1024 * 1024) { alert('Slika je prevelika (max 10MB).'); return }
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    const img = document.createElement('img')
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const MAX = 800
+      let w = img.width, h = img.height
+      if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX }
+      else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX }
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      cb(canvas.toDataURL('image/jpeg', 0.78))
+    }
+    img.src = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
 
 export default function PlacesSection({ trip }) {
   const addPlace = useStore((s) => s.addPlace)
@@ -35,6 +55,8 @@ export default function PlacesSection({ trip }) {
   const [form, setForm] = useState(EMPTY)
   const [filter, setFilter] = useState('all')
   const [filterCat, setFilterCat] = useState('all')
+  const [photoTab, setPhotoTab] = useState('upload')
+  const fileRef = useRef()
 
   const filtered = places.filter((p) => {
     if (filter === 'visited') return p.visited
@@ -46,8 +68,14 @@ export default function PlacesSection({ trip }) {
   const handleAdd = () => {
     if (!form.name.trim()) return
     addPlace(trip.id, { ...form, name: form.name.trim() })
-    setForm(EMPTY)
-    setShowForm(false)
+    setForm(EMPTY); setShowForm(false)
+  }
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    compressImage(file, (dataUrl) => setForm((f) => ({ ...f, photoUrl: dataUrl })))
+    e.target.value = ''
   }
 
   const visitedCount = places.filter((p) => p.visited).length
@@ -57,24 +85,24 @@ export default function PlacesSection({ trip }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-bold text-slate-800">📍 Mesta, restorani & foto spotovi</h2>
-          <p className="text-xs text-slate-400 mt-0.5">{visitedCount}/{places.length} posećeno {mustSeeCount > 0 && `· ${mustSeeCount} must-see preostalo`}</p>
+          <h2 className="font-display text-lg font-semibold text-ink">📍 Mesta, restorani & foto spotovi</h2>
+          <p className="text-xs text-mist mt-0.5">{visitedCount}/{places.length} posećeno{mustSeeCount > 0 ? ` · ${mustSeeCount} must-see preostalo` : ''}</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-1 text-sm bg-amber-500 text-white px-3 py-1.5 rounded-full hover:bg-amber-600 transition-colors">
+        <button onClick={() => setShowForm(true)} className="flex items-center gap-1 text-sm bg-gold text-[#131918] px-3 py-1.5 rounded-full hover:bg-gold-light transition-colors font-semibold">
           <Plus size={14} /> Dodaj
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-3">
-          <h3 className="font-semibold text-slate-700">Novo mesto</h3>
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen space-y-3">
+          <h3 className="font-semibold text-ink">Novo mesto</h3>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Naziv *</label>
+              <label className="text-xs text-mist mb-1 block">Naziv *</label>
               <input type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="npr. Trevi fontana" className={inp} autoFocus />
             </div>
             <div>
-              <label className="text-xs text-slate-500 mb-1 block">Kategorija</label>
+              <label className="text-xs text-mist mb-1 block">Kategorija</label>
               <select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} className={inp}>
                 {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>)}
               </select>
@@ -86,7 +114,7 @@ export default function PlacesSection({ trip }) {
             <div className="flex gap-1">
               {PRICE_LEVELS.map((p) => (
                 <button key={p.id} type="button" onClick={() => setForm((f) => ({ ...f, priceLevel: p.id }))} title={p.title}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${form.priceLevel === p.id ? 'bg-amber-400 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${form.priceLevel === p.id ? 'bg-gold text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
                   {p.label}
                 </button>
               ))}
@@ -98,30 +126,57 @@ export default function PlacesSection({ trip }) {
           </div>
           <input type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="Telefon za rezervaciju" className={inp} />
           <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Opis, šta poručiti, posebni saveti..." className={`${inp} resize-none`} />
-          <textarea value={form.tip} onChange={(e) => setForm((f) => ({ ...f, tip: e.target.value }))} rows={1} placeholder="💡 Pro tip (npr. Dođi pre 8h da nema reda)" className={`${inp} resize-none`} />
-          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <textarea value={form.tip} onChange={(e) => setForm((f) => ({ ...f, tip: e.target.value }))} rows={1} placeholder="💡 Pro tip" className={`${inp} resize-none`} />
+          <div>
+            <label className="text-xs text-mist mb-2 block flex items-center gap-1"><Image size={12} /> Fotografija mesta (opciono)</label>
+            <div className="flex gap-1 mb-2">
+              <button onClick={() => setPhotoTab('upload')} className={`flex-1 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors ${photoTab === 'upload' ? 'bg-forest text-white' : 'bg-parchment text-mist border border-linen'}`}>
+                <Upload size={11} /> Upload
+              </button>
+              <button onClick={() => setPhotoTab('url')} className={`flex-1 py-1.5 rounded-lg text-xs font-medium flex items-center justify-center gap-1 transition-colors ${photoTab === 'url' ? 'bg-forest text-white' : 'bg-parchment text-mist border border-linen'}`}>
+                <LinkIcon size={11} /> URL
+              </button>
+            </div>
+            {photoTab === 'upload' ? (
+              <div>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                {form.photoUrl ? (
+                  <div className="relative">
+                    <img src={form.photoUrl} alt="" className="w-full h-32 object-cover rounded-xl" />
+                    <button onClick={() => setForm((f) => ({ ...f, photoUrl: '' }))} className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">×</button>
+                  </div>
+                ) : (
+                  <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-linen rounded-xl py-4 text-sm text-mist hover:border-forest hover:text-forest transition-colors flex flex-col items-center gap-1">
+                    <Upload size={18} /><span>Izaberi fotografiju</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <input type="text" value={form.photoUrl} onChange={(e) => setForm((f) => ({ ...f, photoUrl: e.target.value }))} placeholder="URL fotografije" className={inp} />
+            )}
+          </div>
+          <label className="flex items-center gap-2 text-sm text-ink-light cursor-pointer">
             <input type="checkbox" checked={form.mustSee} onChange={(e) => setForm((f) => ({ ...f, mustSee: e.target.checked }))} className="rounded" />
             ⭐ Must-see / Ne sme da se propusti
           </label>
           <div className="flex gap-2">
-            <button onClick={handleAdd} className="flex-1 bg-amber-500 text-white text-sm py-2.5 rounded-xl hover:bg-amber-600 font-medium">Dodaj mesto</button>
-            <button onClick={() => setShowForm(false)} className="px-4 border border-slate-200 text-slate-600 text-sm py-2.5 rounded-xl hover:bg-slate-50">Otkaži</button>
+            <button onClick={handleAdd} className="flex-1 bg-gold text-[#131918] text-sm py-2.5 rounded-xl hover:bg-gold-light font-semibold">Dodaj mesto</button>
+            <button onClick={() => setShowForm(false)} className="px-4 border border-linen text-ink-light text-sm py-2.5 rounded-xl hover:bg-parchment">Otkaži</button>
           </div>
         </div>
       )}
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-2">
         <div className="flex gap-1">
           {[['all','Sve'],['pending','Neposećeno'],['visited','Posećeno']].map(([val, label]) => (
-            <button key={val} onClick={() => { setFilter(val); setFilterCat('all') }} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === val && filterCat === 'all' ? 'bg-amber-500 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-amber-300'}`}>
+            <button key={val} onClick={() => { setFilter(val); setFilterCat('all') }} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === val && filterCat === 'all' ? 'bg-gold text-white' : 'bg-white border border-linen text-ink-light hover:border-gold'}`}>
               {label}
             </button>
           ))}
         </div>
         <div className="flex gap-1 flex-wrap">
           {CATEGORIES.map((c) => (
-            <button key={c.id} onClick={() => { setFilterCat(c.id); setFilter('all') }} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filterCat === c.id ? 'bg-slate-700 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-400'}`}>
+            <button key={c.id} onClick={() => { setFilterCat(c.id); setFilter('all') }} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filterCat === c.id ? 'bg-ink text-white' : 'bg-white border border-linen text-ink-light hover:border-ink'}`}>
               {c.emoji}
             </button>
           ))}
@@ -129,40 +184,38 @@ export default function PlacesSection({ trip }) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-10 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+        <div className="text-center py-10 bg-white rounded-2xl border-2 border-dashed border-linen">
           <div className="text-4xl mb-2">📍</div>
-          <p className="text-slate-400 text-sm">Nema mesta u ovoj kategoriji</p>
+          <p className="text-mist text-sm">Nema mesta u ovoj kategoriji</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((place) => {
             const cat = CATEGORIES.find((c) => c.id === place.category) || CATEGORIES.at(-1)
             return (
-              <div key={place.id} className={`bg-white rounded-2xl p-4 shadow-sm border transition-all ${place.visited ? 'border-green-200 opacity-75' : place.mustSee ? 'border-amber-300' : 'border-slate-100 hover:shadow-md'}`}>
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl flex-shrink-0">{cat.emoji}</div>
+              <div key={place.id} className={`bg-white rounded-2xl overflow-hidden shadow-sm border transition-all ${place.visited ? 'border-green-200 opacity-75' : place.mustSee ? 'border-gold/50' : 'border-linen hover:shadow-md'}`}>
+                {place.photoUrl && (
+                  <img src={place.photoUrl} alt={place.name} className="w-full h-40 object-cover" onError={(e) => { e.target.style.display = 'none' }} />
+                )}
+                <div className="p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gold/10 rounded-xl flex items-center justify-center text-xl flex-shrink-0">{cat.emoji}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-bold text-slate-800 ${place.visited ? 'line-through text-slate-400' : ''}`}>{place.name}</span>
-                      {place.mustSee && !place.visited && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">⭐ Must-see</span>}
+                      <span className={`font-semibold text-ink ${place.visited ? 'line-through text-mist' : ''}`}>{place.name}</span>
+                      {place.mustSee && !place.visited && <span className="text-xs bg-gold/15 text-gold-dark px-2 py-0.5 rounded-full font-medium">⭐ Must-see</span>}
                       {place.visited && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Posećeno</span>}
                     </div>
-                    {place.address && <div className="flex items-center gap-1 text-xs text-slate-400 mt-1"><MapPin size={10} />{place.address}</div>}
+                    {place.address && <div className="flex items-center gap-1 text-xs text-mist mt-1"><MapPin size={10} />{place.address}</div>}
                     <div className="flex flex-wrap gap-3 mt-1">
-                      {place.hours && <span className="text-xs text-slate-400 flex items-center gap-0.5"><Clock size={10} />{place.hours}</span>}
-                      {place.priceLevel && <span className="text-xs text-amber-600 font-medium">{PRICE_LEVELS.find((p) => p.id === place.priceLevel)?.label}</span>}
-                      {place.rating && <span className="text-xs text-slate-400">{place.rating}</span>}
-                      {place.phone && <span className="text-xs text-blue-500">{place.phone}</span>}
+                      {place.hours && <span className="text-xs text-mist flex items-center gap-0.5"><Clock size={10} />{place.hours}</span>}
+                      {place.priceLevel && <span className="text-xs text-gold-dark font-medium">{PRICE_LEVELS.find((p) => p.id === place.priceLevel)?.label}</span>}
+                      {place.rating && <span className="text-xs text-mist">{place.rating}</span>}
                     </div>
-                    {place.notes && <p className="text-xs text-slate-500 mt-1">{place.notes}</p>}
-                    {place.tip && <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-1">💡 {place.tip}</p>}
+                    {place.notes && <p className="text-xs text-ink-light/70 mt-1">{place.notes}</p>}
+                    {place.tip && <p className="text-xs text-gold-dark bg-gold/10 rounded-lg px-2 py-1 mt-1">💡 {place.tip}</p>}
                   </div>
                   <div className="flex flex-col gap-1">
-                    <button
-                      onClick={() => updatePlace(trip.id, place.id, { visited: !place.visited })}
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${place.visited ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-slate-100 text-slate-400 hover:bg-green-100 hover:text-green-600'}`}
-                      title={place.visited ? 'Označi kao neposećeno' : 'Označi kao posećeno'}
-                    >
+                    <button onClick={() => updatePlace(trip.id, place.id, { visited: !place.visited })} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${place.visited ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-parchment text-mist hover:bg-green-100 hover:text-green-600'}`}>
                       <Check size={13} />
                     </button>
                     <button onClick={() => deletePlace(trip.id, place.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-400 hover:bg-red-50 transition-colors">

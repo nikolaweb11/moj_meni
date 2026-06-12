@@ -7,6 +7,7 @@ import {
   Backpack, FileText, Globe, Star, Camera, CheckSquare, Menu, X, Heart,
 } from 'lucide-react'
 import useStore from '../store/useStore'
+import { useDestinationData, getDestinationTheme } from '../hooks/useDestinationData'
 import ReviewSection from '../sections/ReviewSection'
 import OverviewSection from '../sections/OverviewSection'
 import FlightsSection from '../sections/FlightsSection'
@@ -19,15 +20,6 @@ import LocalInfoSection from '../sections/LocalInfoSection'
 import PlacesSection from '../sections/PlacesSection'
 import MemoriesSection from '../sections/MemoriesSection'
 import PreTripSection from '../sections/PreTripSection'
-
-const GRADIENT_MAP = {
-  sunset: 'from-orange-400 to-rose-500',
-  ocean: 'from-blue-400 to-cyan-500',
-  forest: 'from-green-400 to-emerald-500',
-  lavender: 'from-purple-400 to-pink-500',
-  night: 'from-indigo-600 to-purple-700',
-  sand: 'from-yellow-400 to-amber-500',
-}
 
 const NAV = [
   { id: 'overview', label: 'Pregled', icon: LayoutDashboard },
@@ -52,9 +44,11 @@ export default function TripDetail() {
   const [active, setActive] = useState('overview')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
+  const destData = useDestinationData(trip?.destination)
+  const theme = getDestinationTheme(trip?.destination)
+
   if (!trip) return <Navigate to="/" replace />
 
-  const gradient = GRADIENT_MAP[trip.color] || GRADIENT_MAP.sunset
   const numDays = differenceInDays(parseISO(trip.endDate), parseISO(trip.startDate)) + 1
 
   const handleDelete = () => {
@@ -70,45 +64,57 @@ export default function TripDetail() {
   }
 
   const activeNav = NAV.find((n) => n.id === active)
-
   const preTrip = trip.preTrip || []
   const preDone = preTrip.filter((p) => p.done).length
 
-  function sectionBadge(id) {
-    if (id === 'pretrip') return preDone < preTrip.length ? preTrip.length - preDone : null
-    if (id === 'flights') return (trip.flights || []).length || null
-    if (id === 'accommodation') return (trip.accommodations || []).length || null
-    if (id === 'places') return (trip.places || []).length || null
-    if (id === 'memories') return (trip.memories || []).length || null
-    if (id === 'review') return (trip.review?.overallRating > 0) ? '⭐' : null
+  function sectionBadge(navId) {
+    if (navId === 'pretrip') return preDone < preTrip.length ? preTrip.length - preDone : null
+    if (navId === 'flights') return (trip.flights || []).length || null
+    if (navId === 'accommodation') return (trip.accommodations || []).length || null
+    if (navId === 'places') return (trip.places || []).length || null
+    if (navId === 'memories') return (trip.memories || []).length || null
+    if (navId === 'review') return (trip.review?.overallRating > 0) ? '⭐' : null
     return null
   }
+
+  const headerBg = destData.imageUrl
+    ? { backgroundImage: `url(${destData.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: `linear-gradient(135deg, ${theme.from}, ${theme.to})` }
 
   return (
     <div>
       {/* Trip header */}
-      <div className={`rounded-3xl bg-gradient-to-r ${gradient} p-6 md:p-9 mb-6 text-white relative overflow-hidden shadow-lg`}>
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 text-8xl opacity-10 select-none">✈️</div>
-        <button onClick={() => navigate('/')} className="flex items-center gap-1 text-white/75 hover:text-white text-sm mb-3 transition-colors">
-          <ArrowLeft size={15} /> Nazad
-        </button>
-        <h1 className="text-3xl font-extrabold mb-1 relative">{trip.title}</h1>
-        <div className="flex flex-wrap gap-4 text-white/80 text-sm relative">
-          <span className="flex items-center gap-1"><MapPin size={13} />{trip.destination}</span>
-          <span className="flex items-center gap-1">
-            <Calendar size={13} />
-            {format(parseISO(trip.startDate), 'dd.MM.yyyy')} — {format(parseISO(trip.endDate), 'dd.MM.yyyy')}
-          </span>
-          <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{numDays} dana</span>
+      <div className="rounded-2xl overflow-hidden mb-6 relative shadow-lg" style={{ minHeight: 160, ...headerBg }}>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/40 to-black/15" />
+        {!destData.imageUrl && (
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 text-8xl opacity-15 select-none">{theme.flag}</div>
+        )}
+        <div className="relative p-6 md:p-8">
+          <button onClick={() => navigate('/')} className="flex items-center gap-1 text-white/60 hover:text-white text-sm mb-4 transition-colors">
+            <ArrowLeft size={15} /> Nazad
+          </button>
+          <h1 className="font-display text-3xl md:text-4xl font-bold text-white mb-2 leading-tight">{trip.title}</h1>
+          <div className="flex flex-wrap gap-4 text-white/65 text-sm">
+            <span className="flex items-center gap-1.5">
+              <MapPin size={13} style={{ color: theme.accent }} />{trip.destination}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Calendar size={13} className="text-white/40" />
+              {format(parseISO(trip.startDate), 'dd.MM.yyyy')} — {format(parseISO(trip.endDate), 'dd.MM.yyyy')}
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium text-white/85" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)' }}>
+              {numDays} dana
+            </span>
+          </div>
         </div>
-        <button onClick={handleDelete} className="absolute top-5 right-5 text-white/40 hover:text-white/80 transition-colors">
+        <button onClick={handleDelete} className="absolute top-5 right-5 text-white/30 hover:text-white/70 transition-colors">
           <Trash2 size={17} />
         </button>
       </div>
 
       <div className="flex gap-5">
         {/* Sidebar — desktop */}
-        <aside className="hidden lg:flex flex-col gap-1 w-52 flex-shrink-0">
+        <aside className="hidden lg:flex flex-col gap-0.5 w-52 flex-shrink-0">
           {NAV.map((item) => {
             const Icon = item.icon
             const badge = sectionBadge(item.id)
@@ -118,14 +124,14 @@ export default function TripDetail() {
                 onClick={() => setActive(item.id)}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-all ${
                   active === item.id
-                    ? 'bg-white shadow-sm text-rose-600'
-                    : 'text-slate-600 hover:bg-white/60 hover:text-slate-800'
+                    ? 'bg-forest text-white shadow-sm'
+                    : 'text-ink-light hover:bg-white hover:text-ink hover:shadow-sm'
                 }`}
               >
-                <Icon size={16} className="flex-shrink-0" />
+                <Icon size={15} className="flex-shrink-0" />
                 <span className="flex-1">{item.label}</span>
                 {badge != null && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${active === item.id ? 'bg-rose-100 text-rose-600' : 'bg-slate-200 text-slate-500'}`}>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${active === item.id ? 'bg-white/20 text-white' : 'bg-linen text-mist'}`}>
                     {badge}
                   </span>
                 )}
@@ -134,21 +140,20 @@ export default function TripDetail() {
           })}
         </aside>
 
-        {/* Mobile nav toggle */}
+        {/* Mobile nav */}
         <div className="lg:hidden w-full">
           <button
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            className="w-full flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-100 mb-4"
+            className="w-full flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-sm border border-linen mb-4"
           >
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-              {activeNav && <activeNav.icon size={16} className="text-rose-500" />}
+            <div className="flex items-center gap-2 text-sm font-medium text-ink">
+              {activeNav && <activeNav.icon size={16} className="text-forest" />}
               {activeNav?.label}
             </div>
-            {mobileNavOpen ? <X size={18} className="text-slate-400" /> : <Menu size={18} className="text-slate-400" />}
+            {mobileNavOpen ? <X size={18} className="text-mist" /> : <Menu size={18} className="text-mist" />}
           </button>
-
           {mobileNavOpen && (
-            <div className="bg-white rounded-2xl shadow-md border border-slate-100 mb-4 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-md border border-linen mb-4 overflow-hidden">
               {NAV.map((item) => {
                 const Icon = item.icon
                 const badge = sectionBadge(item.id)
@@ -156,15 +161,11 @@ export default function TripDetail() {
                   <button
                     key={item.id}
                     onClick={() => selectSection(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors border-b border-slate-50 last:border-0 ${
-                      active === item.id ? 'bg-rose-50 text-rose-600' : 'text-slate-600 hover:bg-slate-50'
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors border-b border-linen last:border-0 ${active === item.id ? 'bg-forest/5 text-forest' : 'text-ink-light hover:bg-parchment'}`}
                   >
-                    <Icon size={16} />
+                    <Icon size={15} />
                     <span className="flex-1 text-left">{item.label}</span>
-                    {badge != null && (
-                      <span className="text-xs bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full">{badge}</span>
-                    )}
+                    {badge != null && <span className="text-xs bg-linen text-mist px-1.5 py-0.5 rounded-full">{badge}</span>}
                   </button>
                 )
               })}
@@ -172,9 +173,9 @@ export default function TripDetail() {
           )}
         </div>
 
-        {/* Main content */}
+        {/* Main content desktop */}
         <main className="flex-1 min-w-0 hidden lg:block">
-          {active === 'overview' && <OverviewSection trip={trip} numDays={numDays} />}
+          {active === 'overview' && <OverviewSection trip={trip} numDays={numDays} destData={destData} />}
           {active === 'flights' && <FlightsSection trip={trip} />}
           {active === 'accommodation' && <AccommodationSection trip={trip} />}
           {active === 'itinerary' && <ItinerarySection trip={trip} numDays={numDays} />}
@@ -189,11 +190,11 @@ export default function TripDetail() {
         </main>
       </div>
 
-      {/* Mobile main content (shown outside flex when nav is closed) */}
+      {/* Mobile main content */}
       <div className="lg:hidden">
         {!mobileNavOpen && (
           <>
-            {active === 'overview' && <OverviewSection trip={trip} numDays={numDays} />}
+            {active === 'overview' && <OverviewSection trip={trip} numDays={numDays} destData={destData} />}
             {active === 'flights' && <FlightsSection trip={trip} />}
             {active === 'accommodation' && <AccommodationSection trip={trip} />}
             {active === 'itinerary' && <ItinerarySection trip={trip} numDays={numDays} />}

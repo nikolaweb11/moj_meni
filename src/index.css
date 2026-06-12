@@ -7,8 +7,12 @@
 }
 
 body {
-  background: linear-gradient(135deg, #fff1f2 0%, #fdf4ff 50%, #f0f9ff 100%);
+  background-color: #F1ECE4;
   min-height: 100vh;
+}
+
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
 .tab-active {

@@ -1,7 +1,7 @@
 import { format, parseISO, isAfter, isBefore } from 'date-fns'
-import { MapPin, Calendar, Wallet, CheckSquare, PlaneTakeoff, Building2 } from 'lucide-react'
+import { MapPin, Calendar, PlaneTakeoff, Building2 } from 'lucide-react'
 
-export default function OverviewSection({ trip, numDays }) {
+export default function OverviewSection({ trip, numDays, destData }) {
   const today = new Date()
   const started = !isAfter(parseISO(trip.startDate), today)
   const ended = isBefore(parseISO(trip.endDate), today)
@@ -11,132 +11,95 @@ export default function OverviewSection({ trip, numDays }) {
   const budget = trip.budget?.total || 0
   const currency = trip.budget?.currency || 'EUR'
   const budgetPct = budget ? Math.min((totalSpent / budget) * 100, 100) : 0
-
   const preTrip = trip.preTrip || []
   const preDone = preTrip.filter((p) => p.done).length
-
   const itinDays = (trip.itinerary || []).reduce((s, d) => s + d.activities.length, 0)
   const itinDone = (trip.itinerary || []).reduce((s, d) => s + d.activities.filter((a) => a.done).length, 0)
-
   const packingList = trip.packingList || []
   const packDone = packingList.filter((i) => i.packed).length
 
-  const statusColors = {
-    planned: 'bg-blue-100 text-blue-700',
-    ongoing: 'bg-green-100 text-green-700',
-    completed: 'bg-slate-100 text-slate-600',
+  const statusConfig = {
+    planned: { cls: 'bg-blue-50 text-blue-700 border border-blue-100', label: 'Planirano' },
+    ongoing: { cls: 'bg-green-50 text-green-700 border border-green-100', label: '🟢 U toku' },
+    completed: { cls: 'bg-slate-100 text-slate-600 border border-slate-200', label: 'Završeno' },
   }
-  const statusLabel = { planned: 'Planirano', ongoing: '🟢 U toku', completed: 'Završeno' }
+  const st = statusConfig[status]
 
   return (
     <div className="space-y-4">
-      {/* Status + basic info */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+      {/* Wikipedia fact card */}
+      {destData?.loading && (
+        <div className="bg-forest/5 rounded-2xl p-4 border border-forest/15 animate-pulse">
+          <div className="h-3 bg-forest/20 rounded w-1/3 mb-2" />
+          <div className="h-3 bg-forest/10 rounded w-full mb-1" />
+          <div className="h-3 bg-forest/10 rounded w-4/5" />
+        </div>
+      )}
+      {!destData?.loading && destData?.summary && (
+        <div className="bg-forest/5 rounded-2xl p-4 border border-forest/15 flex gap-4 items-start">
+          {destData.imageUrl && (
+            <img src={destData.imageUrl} alt={destData.title || trip.destination} className="w-20 h-20 object-cover rounded-xl flex-shrink-0 shadow-sm" />
+          )}
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-forest uppercase tracking-wider mb-1.5">
+              🌍 {destData.title || trip.destination}
+            </p>
+            <p className="text-sm text-ink-light leading-relaxed line-clamp-3">{destData.summary}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Status + info */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen">
         <div className="flex items-start justify-between mb-4">
-          <h2 className="text-lg font-bold text-slate-800">{trip.title}</h2>
-          <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusColors[status]}`}>
-            {statusLabel[status]}
-          </span>
+          <h2 className="font-display text-lg font-semibold text-ink">{trip.title}</h2>
+          <span className={`text-xs px-3 py-1 rounded-full font-medium ${st.cls}`}>{st.label}</span>
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <InfoRow icon={<MapPin size={14} className="text-rose-400" />} label="Destinacija" value={trip.destination} />
-          <InfoRow icon={<Calendar size={14} className="text-purple-400" />} label="Trajanje" value={`${numDays} dana`} />
-          <InfoRow
-            icon={<Calendar size={14} className="text-blue-400" />}
-            label="Polazak"
-            value={format(parseISO(trip.startDate), 'dd.MM.yyyy')}
-          />
-          <InfoRow
-            icon={<Calendar size={14} className="text-blue-400" />}
-            label="Povratak"
-            value={format(parseISO(trip.endDate), 'dd.MM.yyyy')}
-          />
-          {trip.flights?.length > 0 && (
-            <InfoRow icon={<PlaneTakeoff size={14} className="text-cyan-500" />} label="Letovi" value={`${trip.flights.length} let(ova)`} />
-          )}
-          {trip.accommodations?.length > 0 && (
-            <InfoRow icon={<Building2 size={14} className="text-emerald-500" />} label="Smeštaj" value={trip.accommodations[0].name} />
-          )}
+          <InfoRow icon={<MapPin size={14} className="text-terra" />} label="Destinacija" value={trip.destination} />
+          <InfoRow icon={<Calendar size={14} className="text-mist" />} label="Trajanje" value={`${numDays} dana`} />
+          <InfoRow icon={<Calendar size={14} className="text-mist" />} label="Polazak" value={format(parseISO(trip.startDate), 'dd.MM.yyyy')} />
+          <InfoRow icon={<Calendar size={14} className="text-mist" />} label="Povratak" value={format(parseISO(trip.endDate), 'dd.MM.yyyy')} />
+          {trip.flights?.length > 0 && <InfoRow icon={<PlaneTakeoff size={14} className="text-mist" />} label="Letovi" value={`${trip.flights.length} let(ova)`} />}
+          {trip.accommodations?.length > 0 && <InfoRow icon={<Building2 size={14} className="text-mist" />} label="Smeštaj" value={trip.accommodations[0].name} />}
         </div>
-        {trip.description && (
-          <p className="mt-4 text-sm text-slate-500 border-t border-slate-50 pt-3">{trip.description}</p>
-        )}
+        {trip.description && <p className="mt-4 text-sm text-ink-light/70 border-t border-linen pt-3">{trip.description}</p>}
       </div>
 
-      {/* Progress cards */}
+      {/* Progress */}
       <div className="grid grid-cols-2 gap-3">
-        <ProgressCard
-          label="Budžet"
-          value={`${totalSpent.toFixed(0)} / ${budget} ${currency}`}
-          pct={budgetPct}
-          color={budgetPct > 90 ? 'bg-red-400' : budgetPct > 70 ? 'bg-amber-400' : 'bg-green-400'}
-          icon="💰"
-        />
-        <ProgressCard
-          label="Pre-trip lista"
-          value={`${preDone} / ${preTrip.length} završeno`}
-          pct={preTrip.length ? (preDone / preTrip.length) * 100 : 0}
-          color="bg-purple-400"
-          icon="✅"
-        />
-        <ProgressCard
-          label="Itinerar"
-          value={`${itinDone} / ${itinDays} aktivnosti`}
-          pct={itinDays ? (itinDone / itinDays) * 100 : 0}
-          color="bg-rose-400"
-          icon="📅"
-        />
-        <ProgressCard
-          label="Pakovanje"
-          value={`${packDone} / ${packingList.length} spakovano`}
-          pct={packingList.length ? (packDone / packingList.length) * 100 : 0}
-          color="bg-blue-400"
-          icon="🎒"
-        />
+        <ProgressCard label="Budžet" value={`${totalSpent.toFixed(0)} / ${budget} ${currency}`} pct={budgetPct} barColor={budgetPct > 90 ? '#F87171' : budgetPct > 70 ? '#FBBF24' : '#4A7C59'} icon="💰" />
+        <ProgressCard label="Pre-trip lista" value={`${preDone} / ${preTrip.length} završeno`} pct={preTrip.length ? (preDone / preTrip.length) * 100 : 0} barColor="#8B5CF6" icon="✅" />
+        <ProgressCard label="Itinerar" value={`${itinDone} / ${itinDays} aktivnosti`} pct={itinDays ? (itinDone / itinDays) * 100 : 0} barColor="#C4932A" icon="📅" />
+        <ProgressCard label="Pakovanje" value={`${packDone} / ${packingList.length} spakovano`} pct={packingList.length ? (packDone / packingList.length) * 100 : 0} barColor="#2D4A3E" icon="🎒" />
       </div>
 
-      {/* Flights quick view */}
       {trip.flights?.length > 0 && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-semibold text-slate-700 mb-3 text-sm">✈️ Letovi</h3>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-linen">
+          <h3 className="font-semibold text-ink text-sm mb-3">✈️ Letovi</h3>
           {trip.flights.map((f) => (
-            <div key={f.id} className="flex items-center gap-3 text-sm py-2 border-b border-slate-50 last:border-0">
-              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 flex-shrink-0">
-                <PlaneTakeoff size={14} />
-              </div>
+            <div key={f.id} className="flex items-center gap-3 text-sm py-2 border-b border-linen last:border-0">
+              <div className="w-8 h-8 bg-forest/10 rounded-lg flex items-center justify-center text-forest flex-shrink-0"><PlaneTakeoff size={14} /></div>
               <div>
-                <div className="font-medium text-slate-700">
-                  {f.departureAirport} → {f.arrivalAirport}
-                </div>
-                <div className="text-xs text-slate-400">
-                  {f.airline} {f.flightNumber} · {f.departureDate} {f.departureTime}
-                </div>
+                <div className="font-medium text-ink">{f.departureAirport} → {f.arrivalAirport}</div>
+                <div className="text-xs text-mist">{f.airline} {f.flightNumber} · {f.departureDate} {f.departureTime}</div>
               </div>
-              {f.bookingRef && (
-                <span className="ml-auto text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-mono">
-                  {f.bookingRef}
-                </span>
-              )}
+              {f.bookingRef && <span className="ml-auto text-xs bg-forest/10 text-forest px-2 py-0.5 rounded-full font-mono">{f.bookingRef}</span>}
             </div>
           ))}
         </div>
       )}
 
-      {/* Accommodations quick view */}
       {trip.accommodations?.length > 0 && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-          <h3 className="font-semibold text-slate-700 mb-3 text-sm">🏨 Smeštaj</h3>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-linen">
+          <h3 className="font-semibold text-ink text-sm mb-3">🏨 Smeštaj</h3>
           {trip.accommodations.map((a) => (
-            <div key={a.id} className="flex items-start gap-3 text-sm py-2 border-b border-slate-50 last:border-0">
-              <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 flex-shrink-0">
-                <Building2 size={14} />
-              </div>
+            <div key={a.id} className="flex items-start gap-3 text-sm py-2 border-b border-linen last:border-0">
+              <div className="w-8 h-8 bg-terra/10 rounded-lg flex items-center justify-center text-terra flex-shrink-0"><Building2 size={14} /></div>
               <div>
-                <div className="font-medium text-slate-700">{a.name}</div>
-                <div className="text-xs text-slate-400">
-                  Check-in: {a.checkIn} {a.checkInTime} · Check-out: {a.checkOut} {a.checkOutTime}
-                </div>
-                {a.address && <div className="text-xs text-slate-400">{a.address}</div>}
+                <div className="font-medium text-ink">{a.name}</div>
+                <div className="text-xs text-mist">Check-in: {a.checkIn} {a.checkInTime} · Check-out: {a.checkOut} {a.checkOutTime}</div>
+                {a.address && <div className="text-xs text-mist">{a.address}</div>}
               </div>
             </div>
           ))}
@@ -149,25 +112,25 @@ export default function OverviewSection({ trip, numDays }) {
 function InfoRow({ icon, label, value }) {
   return (
     <div className="flex items-start gap-2">
-      <span className="mt-0.5">{icon}</span>
+      <span className="mt-0.5 flex-shrink-0">{icon}</span>
       <div>
-        <div className="text-xs text-slate-400">{label}</div>
-        <div className="font-medium text-slate-700">{value || '—'}</div>
+        <div className="text-xs text-mist">{label}</div>
+        <div className="font-medium text-ink text-sm">{value || '—'}</div>
       </div>
     </div>
   )
 }
 
-function ProgressCard({ label, value, pct, color, icon }) {
+function ProgressCard({ label, value, pct, barColor, icon }) {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-linen">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-lg">{icon}</span>
-        <span className="text-xs font-medium text-slate-500">{label}</span>
+        <span className="text-xs font-medium text-mist">{label}</span>
       </div>
-      <div className="text-sm font-semibold text-slate-700 mb-2">{value}</div>
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-        <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+      <div className="text-sm font-semibold text-ink mb-2">{value}</div>
+      <div className="h-2 bg-linen rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
       </div>
     </div>
   )
