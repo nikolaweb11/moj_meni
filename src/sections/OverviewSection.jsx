@@ -21,7 +21,7 @@ export default function OverviewSection({ trip, numDays, destData }) {
   const statusConfig = {
     planned: { cls: 'bg-blue-50 text-blue-700 border border-blue-100', label: 'Planirano' },
     ongoing: { cls: 'bg-green-50 text-green-700 border border-green-100', label: '🟢 U toku' },
-    completed: { cls: 'bg-slate-100 text-slate-600 border border-slate-200', label: 'Završeno' },
+    completed: { cls: 'bg-linen text-ink-light border border-linen', label: 'Završeno' },
   }
   const st = statusConfig[status]
 

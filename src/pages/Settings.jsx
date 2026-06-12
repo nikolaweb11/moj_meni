@@ -69,11 +69,11 @@ export default function Settings() {
       </div>
 
       {/* Couple names */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-        <h2 className="font-semibold text-slate-700 mb-4">Vaša imena 💑</h2>
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen">
+        <h2 className="font-semibold text-ink-light mb-4">Vaša imena 💑</h2>
         <form onSubmit={handleSave} className="space-y-3">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-medium text-mist mb-1 uppercase tracking-wider">
               Tvoje ime
             </label>
             <input
@@ -85,7 +85,7 @@ export default function Settings() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-medium text-mist mb-1 uppercase tracking-wider">
               Njeno ime
             </label>
             <input
@@ -99,9 +99,9 @@ export default function Settings() {
 
           {/* Preview */}
           {(name1 || name2) && (
-            <div className="rounded-xl bg-gradient-to-r from-rose-50 to-purple-50 border border-rose-100 p-3 text-center text-sm text-slate-600">
+            <div className="rounded-xl bg-gradient-to-r from-terra/10 to-purple-50 border border-terra/20 p-3 text-center text-sm text-ink-light">
               Pregled:{' '}
-              <span className="font-bold text-slate-800">
+              <span className="font-bold text-ink">
                 {name1 || 'Ti'} &amp; {name2 || 'Ona'}
               </span>{' '}
               💑
@@ -110,7 +110,7 @@ export default function Settings() {
 
           <button
             type="submit"
-            className="flex items-center gap-2 bg-rose-500 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-rose-600 transition-colors"
+            className="flex items-center gap-2 bg-terra text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-terra-light transition-colors"
           >
             {saved ? (
               <>
@@ -126,15 +126,15 @@ export default function Settings() {
       </div>
 
       {/* Background photos */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-semibold text-slate-700 flex items-center gap-2"><Image size={16} className="text-forest" /> Pozadinska fotografija</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Menja se svakih 60 sekundi • random redosled</p>
+            <h2 className="font-semibold text-ink-light flex items-center gap-2"><Image size={16} className="text-forest" /> Pozadinska fotografija</h2>
+            <p className="text-xs text-mist mt-0.5">Menja se svakih 60 sekundi • random redosled</p>
           </div>
           <button
             onClick={() => setBgEnabled(!bgEnabled)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${bgEnabled ? 'bg-forest' : 'bg-slate-200'}`}
+            className={`relative w-11 h-6 rounded-full transition-colors ${bgEnabled ? 'bg-forest' : 'bg-linen'}`}
           >
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${bgEnabled ? 'translate-x-5' : ''}`} />
           </button>
@@ -232,25 +232,25 @@ export default function Settings() {
       </div>
 
       {/* About */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-        <h2 className="font-semibold text-slate-700 mb-3">O aplikaciji</h2>
-        <div className="space-y-2 text-sm text-slate-500">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen">
+        <h2 className="font-semibold text-ink-light mb-3">O aplikaciji</h2>
+        <div className="space-y-2 text-sm text-mist">
           <p>✈️ Naš Odmor — platforma za planiranje putovanja u paru</p>
           <p>💾 Svi podaci se čuvaju lokalno u vašem pretraživaču</p>
           <p>🔒 Nema naloga, nema servera — samo vi dvoje</p>
         </div>
         <div className="mt-3 flex gap-4 text-sm">
           <div className="text-center">
-            <div className="font-bold text-2xl text-rose-500">
+            <div className="font-bold text-2xl text-terra">
               {useStore.getState().trips.length}
             </div>
-            <div className="text-slate-400">putovanja</div>
+            <div className="text-mist">putovanja</div>
           </div>
           <div className="text-center">
             <div className="font-bold text-2xl text-purple-500">
               {useStore.getState().bucketList.length}
             </div>
-            <div className="text-slate-400">lista želja</div>
+            <div className="text-mist">lista želja</div>
           </div>
         </div>
       </div>
@@ -258,7 +258,7 @@ export default function Settings() {
       {/* Danger zone */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
         <h2 className="font-semibold text-red-600 mb-1">Opasna zona</h2>
-        <p className="text-sm text-slate-500 mb-4">Ove akcije su nepovratne</p>
+        <p className="text-sm text-mist mb-4">Ove akcije su nepovratne</p>
 
         {showReset ? (
           <div className="bg-red-50 rounded-xl p-4">
@@ -266,7 +266,7 @@ export default function Settings() {
               <AlertTriangle size={16} />
               <span className="font-semibold text-sm">Da li si siguran/na?</span>
             </div>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm text-ink-light mb-4">
               Sva putovanja, troškovi, liste za pakovanje i lista želja biće trajno izbrisani.
             </p>
             <div className="flex gap-2">
@@ -278,7 +278,7 @@ export default function Settings() {
               </button>
               <button
                 onClick={() => setShowReset(false)}
-                className="flex-1 border border-slate-200 text-slate-600 text-sm py-2.5 rounded-xl hover:bg-slate-50 transition-colors"
+                className="flex-1 border border-linen text-ink-light text-sm py-2.5 rounded-xl hover:bg-parchment transition-colors"
               >
                 Otkaži
               </button>

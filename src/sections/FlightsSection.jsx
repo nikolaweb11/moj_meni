@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Plus, Trash2, PlaneTakeoff, PlaneLanding, ChevronDown, ChevronUp, Car, Train, Bus } from 'lucide-react'
 import useStore from '../store/useStore'
 
-const inp = 'border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white placeholder-slate-400 w-full'
+const inp = 'border border-linen rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terra/30 bg-white placeholder-mist w-full'
 
 const EMPTY_FLIGHT = {
   type: 'outbound',
@@ -62,15 +62,15 @@ export default function FlightsSection({ trip }) {
       {/* ─── FLIGHTS ─── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-slate-800">✈️ Letovi</h2>
-          <button onClick={() => setShowFlightForm(true)} className="flex items-center gap-1 text-sm bg-rose-500 text-white px-3 py-1.5 rounded-full hover:bg-rose-600 transition-colors">
+          <h2 className="font-bold text-ink">✈️ Letovi</h2>
+          <button onClick={() => setShowFlightForm(true)} className="flex items-center gap-1 text-sm bg-terra text-white px-3 py-1.5 rounded-full hover:bg-terra-light transition-colors">
             <Plus size={14} /> Dodaj let
           </button>
         </div>
 
         {showFlightForm && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-4">
-            <h3 className="font-semibold text-slate-700 mb-4">Novi let</h3>
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen mb-4">
+            <h3 className="font-semibold text-ink-light mb-4">Novi let</h3>
             <div className="space-y-3">
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -105,8 +105,8 @@ export default function FlightsSection({ trip }) {
                   </div>
                 </div>
 
-                <div className="space-y-2 bg-rose-50 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-rose-700 uppercase tracking-wider flex items-center gap-1"><PlaneLanding size={12} /> Dolazak</p>
+                <div className="space-y-2 bg-terra/10 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-terra uppercase tracking-wider flex items-center gap-1"><PlaneLanding size={12} /> Dolazak</p>
                   <input type="text" value={flightForm.arrivalAirport} onChange={(e) => setFlightForm((f) => ({ ...f, arrivalAirport: e.target.value }))} placeholder="Aerodrom (npr. FCO)" className={inp} />
                   <div className="grid grid-cols-2 gap-2">
                     <input type="date" value={flightForm.arrivalDate} onChange={(e) => setFlightForm((f) => ({ ...f, arrivalDate: e.target.value }))} className={inp} />
@@ -142,8 +142,8 @@ export default function FlightsSection({ trip }) {
               </div>
 
               <div className="flex gap-2">
-                <button onClick={handleAddFlight} className="flex-1 bg-rose-500 text-white text-sm py-2.5 rounded-xl hover:bg-rose-600 font-medium">Sačuvaj let</button>
-                <button onClick={() => setShowFlightForm(false)} className="px-4 border border-slate-200 text-slate-600 text-sm py-2.5 rounded-xl hover:bg-slate-50">Otkaži</button>
+                <button onClick={handleAddFlight} className="flex-1 bg-terra text-white text-sm py-2.5 rounded-xl hover:bg-terra-light font-medium">Sačuvaj let</button>
+                <button onClick={() => setShowFlightForm(false)} className="px-4 border border-linen text-ink-light text-sm py-2.5 rounded-xl hover:bg-parchment">Otkaži</button>
               </div>
             </div>
           </div>
@@ -155,28 +155,28 @@ export default function FlightsSection({ trip }) {
 
         <div className="space-y-3">
           {flights.map((f) => (
-            <div key={f.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-50" onClick={() => setExpandedFlight(expandedFlight === f.id ? null : f.id)}>
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${f.type === 'return' ? 'bg-rose-50' : 'bg-blue-50'}`}>
-                  {f.type === 'return' ? <PlaneLanding size={16} className="text-rose-500" /> : <PlaneTakeoff size={16} className="text-blue-500" />}
+            <div key={f.id} className="bg-white rounded-2xl shadow-sm border border-linen overflow-hidden">
+              <div className="flex items-center gap-3 p-4 cursor-pointer hover:bg-parchment" onClick={() => setExpandedFlight(expandedFlight === f.id ? null : f.id)}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${f.type === 'return' ? 'bg-terra/10' : 'bg-blue-50'}`}>
+                  {f.type === 'return' ? <PlaneLanding size={16} className="text-terra" /> : <PlaneTakeoff size={16} className="text-blue-500" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-slate-800 text-sm">
+                  <div className="font-semibold text-ink text-sm">
                     {f.departureAirport} → {f.arrivalAirport}
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-mist">
                     {f.airline} {f.flightNumber} · {f.departureDate} {f.departureTime}
                     {f.duration && ` · ${f.duration}`}
                   </div>
                 </div>
                 {f.bookingRef && <span className="text-xs font-mono bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{f.bookingRef}</span>}
                 <div className="flex items-center gap-1">
-                  {expandedFlight === f.id ? <ChevronUp size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />}
+                  {expandedFlight === f.id ? <ChevronUp size={15} className="text-mist" /> : <ChevronDown size={15} className="text-mist" />}
                 </div>
               </div>
 
               {expandedFlight === f.id && (
-                <div className="border-t border-slate-100 p-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="border-t border-linen p-4 grid grid-cols-2 gap-3 text-sm">
                   <Detail label="Terminal polaska" value={f.departureTerminal} />
                   <Detail label="Gate" value={f.departureGate} />
                   <Detail label="Terminal dolaska" value={f.arrivalTerminal} />
@@ -184,7 +184,7 @@ export default function FlightsSection({ trip }) {
                   <Detail label="Prtljag" value={f.baggageAllowance} />
                   <Detail label="Datum dolaska" value={`${f.arrivalDate} ${f.arrivalTime}`} />
                   {f.notes && <div className="col-span-2"><Detail label="Napomene" value={f.notes} /></div>}
-                  <div className="col-span-2 pt-2 border-t border-slate-50">
+                  <div className="col-span-2 pt-2 border-t border-linen">
                     <button onClick={() => deleteFlight(trip.id, f.id)} className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600">
                       <Trash2 size={12} /> Obriši let
                     </button>
@@ -199,14 +199,14 @@ export default function FlightsSection({ trip }) {
       {/* ─── TRANSFERS ─── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-slate-800">🚕 Transferi</h2>
+          <h2 className="font-bold text-ink">🚕 Transferi</h2>
           <button onClick={() => setShowTransferForm(true)} className="flex items-center gap-1 text-sm bg-amber-500 text-white px-3 py-1.5 rounded-full hover:bg-amber-600 transition-colors">
             <Plus size={14} /> Dodaj transfer
           </button>
         </div>
 
         {showTransferForm && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-3 space-y-2">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-linen mb-3 space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="label">Tip</label>
@@ -233,7 +233,7 @@ export default function FlightsSection({ trip }) {
             <textarea value={transferForm.notes} onChange={(e) => setTransferForm((f) => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Napomene..." className={`${inp} resize-none`} />
             <div className="flex gap-2">
               <button onClick={handleAddTransfer} className="flex-1 bg-amber-500 text-white text-sm py-2 rounded-xl hover:bg-amber-600 font-medium">Sačuvaj</button>
-              <button onClick={() => setShowTransferForm(false)} className="px-4 border border-slate-200 text-slate-600 text-sm py-2 rounded-xl hover:bg-slate-50">Otkaži</button>
+              <button onClick={() => setShowTransferForm(false)} className="px-4 border border-linen text-ink-light text-sm py-2 rounded-xl hover:bg-parchment">Otkaži</button>
             </div>
           </div>
         )}
@@ -243,14 +243,14 @@ export default function FlightsSection({ trip }) {
         ) : (
           <div className="space-y-2">
             {transfers.map((t) => (
-              <div key={t.id} className="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex items-center gap-3">
+              <div key={t.id} className="bg-white rounded-xl p-3 shadow-sm border border-linen flex items-center gap-3">
                 <span className="text-xl">{typeIcons[t.type] || '🚗'}</span>
                 <div className="flex-1">
-                  <div className="font-medium text-slate-700 text-sm">{t.from} → {t.to}</div>
-                  <div className="text-xs text-slate-400">{t.date} {t.time} {t.cost && `· ${t.cost}`} {t.bookingRef && `· ${t.bookingRef}`}</div>
-                  {t.notes && <div className="text-xs text-slate-400">{t.notes}</div>}
+                  <div className="font-medium text-ink-light text-sm">{t.from} → {t.to}</div>
+                  <div className="text-xs text-mist">{t.date} {t.time} {t.cost && `· ${t.cost}`} {t.bookingRef && `· ${t.bookingRef}`}</div>
+                  {t.notes && <div className="text-xs text-mist">{t.notes}</div>}
                 </div>
-                <button onClick={() => deleteTransfer(trip.id, t.id)} className="text-slate-300 hover:text-red-400"><Trash2 size={14} /></button>
+                <button onClick={() => deleteTransfer(trip.id, t.id)} className="text-mist hover:text-red-400"><Trash2 size={14} /></button>
               </div>
             ))}
           </div>
@@ -260,7 +260,7 @@ export default function FlightsSection({ trip }) {
       {/* ─── RENTAL CAR ─── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-slate-800">🚗 Rent a car</h2>
+          <h2 className="font-bold text-ink">🚗 Rent a car</h2>
           {!showCarForm && (
             <button onClick={() => setShowCarForm(true)} className="flex items-center gap-1 text-sm bg-emerald-500 text-white px-3 py-1.5 rounded-full hover:bg-emerald-600 transition-colors">
               {trip.rentalCar ? 'Izmeni' : <><Plus size={14} /> Dodaj</>}
@@ -269,7 +269,7 @@ export default function FlightsSection({ trip }) {
         </div>
 
         {showCarForm ? (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-2">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-linen space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <input type="text" value={carForm.company} onChange={(e) => setCarForm((f) => ({ ...f, company: e.target.value }))} placeholder="Kompanija (npr. Hertz)" className={inp} />
               <input type="text" value={carForm.carModel} onChange={(e) => setCarForm((f) => ({ ...f, carModel: e.target.value }))} placeholder="Model auta" className={inp} />
@@ -286,8 +286,8 @@ export default function FlightsSection({ trip }) {
                 <input type="time" value={carForm.pickupTime} onChange={(e) => setCarForm((f) => ({ ...f, pickupTime: e.target.value }))} className={inp} />
               </div>
             </div>
-            <div className="bg-rose-50 rounded-xl p-3 space-y-2">
-              <p className="text-xs font-semibold text-rose-700">📍 Vraćanje</p>
+            <div className="bg-terra/10 rounded-xl p-3 space-y-2">
+              <p className="text-xs font-semibold text-terra">📍 Vraćanje</p>
               <input type="text" value={carForm.dropoffLocation} onChange={(e) => setCarForm((f) => ({ ...f, dropoffLocation: e.target.value }))} placeholder="Lokacija vraćanja" className={inp} />
               <div className="grid grid-cols-2 gap-2">
                 <input type="date" value={carForm.dropoffDate} onChange={(e) => setCarForm((f) => ({ ...f, dropoffDate: e.target.value }))} className={inp} />
@@ -301,11 +301,11 @@ export default function FlightsSection({ trip }) {
             <textarea value={carForm.notes} onChange={(e) => setCarForm((f) => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Napomene..." className={`${inp} resize-none`} />
             <div className="flex gap-2">
               <button onClick={handleSaveCar} className="flex-1 bg-emerald-500 text-white text-sm py-2 rounded-xl hover:bg-emerald-600 font-medium">Sačuvaj</button>
-              <button onClick={() => setShowCarForm(false)} className="px-4 border border-slate-200 text-slate-600 text-sm py-2 rounded-xl hover:bg-slate-50">Otkaži</button>
+              <button onClick={() => setShowCarForm(false)} className="px-4 border border-linen text-ink-light text-sm py-2 rounded-xl hover:bg-parchment">Otkaži</button>
             </div>
           </div>
         ) : trip.rentalCar ? (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-linen">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Detail label="Kompanija" value={trip.rentalCar.company} />
               <Detail label="Model" value={trip.rentalCar.carModel} />
@@ -330,17 +330,17 @@ function Detail({ label, value }) {
   if (!value) return null
   return (
     <div>
-      <div className="text-xs text-slate-400">{label}</div>
-      <div className="font-medium text-slate-700">{value}</div>
+      <div className="text-xs text-mist">{label}</div>
+      <div className="font-medium text-ink-light">{value}</div>
     </div>
   )
 }
 
 function Empty({ icon, text }) {
   return (
-    <div className="text-center py-8 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+    <div className="text-center py-8 bg-white rounded-2xl border-2 border-dashed border-linen">
       <div className="text-3xl mb-2">{icon}</div>
-      <p className="text-slate-400 text-sm">{text}</p>
+      <p className="text-mist text-sm">{text}</p>
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { Plus, Trash2, Check } from 'lucide-react'
 import useStore from '../store/useStore'
 
 const PRIORITIES = [
-  { id: 'high', label: 'Visok', emoji: '❤️', bg: 'bg-rose-100', text: 'text-rose-700' },
+  { id: 'high', label: 'Visok', emoji: '❤️', bg: 'bg-terra/20', text: 'text-terra' },
   { id: 'medium', label: 'Srednji', emoji: '💛', bg: 'bg-amber-100', text: 'text-amber-700' },
   { id: 'low', label: 'Nizak', emoji: '💚', bg: 'bg-green-100', text: 'text-green-700' },
 ]

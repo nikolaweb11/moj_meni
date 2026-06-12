@@ -3,7 +3,7 @@ import { Plus, Trash2, Check, MapPin, Clock, Upload, Link as LinkIcon, Image, Li
 import useStore from '../store/useStore'
 import { usePlaceSuggestions } from '../hooks/useSuggestions'
 
-const inp = 'border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 bg-white placeholder-slate-400 w-full'
+const inp = 'border border-linen rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 bg-white placeholder-mist w-full'
 
 const CATEGORIES = [
   { id: 'attraction', label: 'Atrakcija', emoji: '🏛️' },
@@ -187,7 +187,7 @@ export default function PlacesSection({ trip }) {
             <div className="flex gap-1">
               {PRICE_LEVELS.map((p) => (
                 <button key={p.id} type="button" onClick={() => setForm((f) => ({ ...f, priceLevel: p.id }))} title={p.title}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${form.priceLevel === p.id ? 'bg-gold text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${form.priceLevel === p.id ? 'bg-gold text-white' : 'bg-linen text-mist hover:bg-linen'}`}>
                   {p.label}
                 </button>
               ))}
@@ -291,7 +291,7 @@ export default function PlacesSection({ trip }) {
                     <button onClick={() => updatePlace(trip.id, place.id, { visited: !place.visited })} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors ${place.visited ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-parchment text-mist hover:bg-green-100 hover:text-green-600'}`}>
                       <Check size={13} />
                     </button>
-                    <button onClick={() => deletePlace(trip.id, place.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-400 hover:bg-red-50 transition-colors">
+                    <button onClick={() => deletePlace(trip.id, place.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-mist hover:text-red-400 hover:bg-red-50 transition-colors">
                       <Trash2 size={13} />
                     </button>
                   </div>

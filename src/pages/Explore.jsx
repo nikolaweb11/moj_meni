@@ -483,7 +483,7 @@ export default function Explore() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-ink">Istraži svet 🌍</h1>
-        <p className="text-slate-500 text-sm mt-1">Legende, zanimljivosti i priroda različitih zemalja</p>
+        <p className="text-mist text-sm mt-1">Legende, zanimljivosti i priroda različitih zemalja</p>
       </div>
 
       {/* Country selector */}

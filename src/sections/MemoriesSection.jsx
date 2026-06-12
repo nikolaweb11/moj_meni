@@ -3,7 +3,7 @@ import { Plus, Trash2, Edit2, Camera, Upload, Link as LinkIcon } from 'lucide-re
 import { format, parseISO } from 'date-fns'
 import useStore from '../store/useStore'
 
-const inp = 'border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 bg-white placeholder-slate-400 w-full'
+const inp = 'border border-linen rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 bg-white placeholder-mist w-full'
 
 const MOODS = [
   { id: 'amazing', emoji: '🤩', label: 'Fantastično' },
@@ -109,7 +109,7 @@ export default function MemoriesSection({ trip }) {
             <div className="flex gap-2">
               {MOODS.map((m) => (
                 <button key={m.id} type="button" onClick={() => setForm((f) => ({ ...f, mood: m.id }))}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-xs transition-all ${form.mood === m.id ? 'bg-forest/10 text-forest ring-2 ring-forest/30' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                  className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-xs transition-all ${form.mood === m.id ? 'bg-forest/10 text-forest ring-2 ring-forest/30' : 'bg-linen text-mist hover:bg-linen'}`}>
                   <span className="text-lg">{m.emoji}</span>
                   <span>{m.label}</span>
                 </button>
@@ -153,8 +153,8 @@ export default function MemoriesSection({ trip }) {
                       {m.photos?.length > 0 && <span className="text-xs text-mist mt-1 flex items-center gap-1"><Camera size={11} /> {m.photos.length} fotografija</span>}
                     </div>
                     <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => startEdit(m)} className="text-slate-300 hover:text-forest p-1"><Edit2 size={14} /></button>
-                      <button onClick={() => deleteMemory(trip.id, m.id)} className="text-slate-300 hover:text-red-400 p-1"><Trash2 size={14} /></button>
+                      <button onClick={() => startEdit(m)} className="text-mist hover:text-forest p-1"><Edit2 size={14} /></button>
+                      <button onClick={() => deleteMemory(trip.id, m.id)} className="text-mist hover:text-red-400 p-1"><Trash2 size={14} /></button>
                     </div>
                   </div>
                 </div>
