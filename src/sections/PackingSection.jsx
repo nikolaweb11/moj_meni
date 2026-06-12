@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Plus, Trash2, Check, Edit2 } from 'lucide-react'
+import { Plus, Trash2, Check, Edit2, Lightbulb } from 'lucide-react'
 import { parseISO, addDays } from 'date-fns'
 import useStore from '../store/useStore'
+import { getPackingSuggestions } from '../hooks/useSuggestions'
 
 const inp = 'border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white placeholder-slate-400 w-full'
 
@@ -73,11 +74,14 @@ export default function PackingSection({ trip, numDays }) {
     <div className="space-y-4">
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl">
-        <button onClick={() => setTab('packing')} className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all ${tab === 'packing' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
-          🎒 Lista pakovanja
+        <button onClick={() => setTab('packing')} className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-all ${tab === 'packing' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
+          🎒 Lista
         </button>
-        <button onClick={() => setTab('outfits')} className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all ${tab === 'outfits' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
-          👗 Outfiti po danima
+        <button onClick={() => setTab('outfits')} className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-all ${tab === 'outfits' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
+          👗 Outfiti
+        </button>
+        <button onClick={() => setTab('suggest')} className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1 ${tab === 'suggest' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
+          <Lightbulb size={13} /> Predlozi
         </button>
       </div>
 
@@ -231,6 +235,77 @@ export default function PackingSection({ trip, numDays }) {
           )}
         </>
       )}
+
+      {tab === 'suggest' && (
+        <PackingSuggestions trip={trip} numDays={numDays} addPackingItem={addPackingItem} />
+      )}
+    </div>
+  )
+}
+
+function PackingSuggestions({ trip, numDays, addPackingItem }) {
+  const suggestions = getPackingSuggestions(trip.destination, trip.startDate, numDays)
+  const [addedItems, setAddedItems] = useState(new Set())
+
+  const PACKING_CATS = ['Dokumenti', 'Odeća', 'Toaletna', 'Elektronika', 'Lekovi', 'Obuća', 'Nakit & aksesoare', 'Ostalo']
+  const CAT_EMOJI = { Dokumenti: '📄', Odeća: '👕', Toaletna: '🧴', Elektronika: '🔌', Lekovi: '💊', Obuća: '👟', 'Nakit & aksesoare': '💍', Ostalo: '📦' }
+
+  const byCat = PACKING_CATS.reduce((acc, cat) => {
+    const items = suggestions.filter((s) => s.category === cat)
+    if (items.length) acc[cat] = items
+    return acc
+  }, {})
+
+  function addItem(s) {
+    addPackingItem(trip.id, { item: s.item, category: s.category, assignedTo: s.assignedTo, quantity: s.quantity, notes: s.notes })
+    setAddedItems((prev) => new Set([...prev, s.item]))
+  }
+
+  function addAll(items) {
+    items.forEach((s) => {
+      if (!addedItems.has(s.item)) addItem(s)
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-forest/5 rounded-2xl p-4 border border-forest/15">
+        <p className="text-sm font-semibold text-forest mb-0.5">💡 Predlozi za {trip.destination}</p>
+        <p className="text-xs text-mist">{suggestions.length} stavki na osnovu destinacije i sezone • kliknite + da dodate</p>
+      </div>
+      {Object.entries(byCat).map(([cat, items]) => (
+        <div key={cat} className="bg-white rounded-2xl border border-linen shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-linen bg-parchment/50">
+            <span className="font-medium text-ink text-sm">{CAT_EMOJI[cat] || '📦'} {cat}</span>
+            <button
+              onClick={() => addAll(items)}
+              className="text-xs text-forest hover:text-forest-light font-medium border border-forest/30 px-2.5 py-1 rounded-lg hover:bg-forest/5 transition-colors"
+            >
+              Dodaj sve
+            </button>
+          </div>
+          <div className="divide-y divide-linen">
+            {items.map((s) => {
+              const isAdded = addedItems.has(s.item)
+              return (
+                <div key={s.item} className={`flex items-center gap-3 px-4 py-2.5 ${isAdded ? 'opacity-50' : ''}`}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-ink">{s.item}</p>
+                    {s.notes && <p className="text-xs text-mist">{s.notes}</p>}
+                  </div>
+                  <button
+                    onClick={() => addItem(s)}
+                    disabled={isAdded}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${isAdded ? 'bg-green-100 text-green-600' : 'bg-forest/10 text-forest hover:bg-forest hover:text-white'}`}
+                  >
+                    {isAdded ? <Check size={13} /> : <Plus size={13} />}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

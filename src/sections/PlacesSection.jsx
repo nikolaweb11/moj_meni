@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
-import { Plus, Trash2, Check, MapPin, Clock, Upload, Link as LinkIcon, Image } from 'lucide-react'
+import { Plus, Trash2, Check, MapPin, Clock, Upload, Link as LinkIcon, Image, Lightbulb } from 'lucide-react'
 import useStore from '../store/useStore'
+import { usePlaceSuggestions } from '../hooks/useSuggestions'
 
 const inp = 'border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-forest/30 bg-white placeholder-slate-400 w-full'
 
@@ -51,12 +52,16 @@ export default function PlacesSection({ trip }) {
   const deletePlace = useStore((s) => s.deletePlace)
 
   const places = trip.places || []
+  const [viewTab, setViewTab] = useState('my')
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(EMPTY)
   const [filter, setFilter] = useState('all')
   const [filterCat, setFilterCat] = useState('all')
   const [photoTab, setPhotoTab] = useState('upload')
+  const [added, setAdded] = useState(new Set())
   const fileRef = useRef()
+
+  const { loading: sugLoading, places: sugPlaces } = usePlaceSuggestions(trip.destination)
 
   const filtered = places.filter((p) => {
     if (filter === 'visited') return p.visited
@@ -81,8 +86,76 @@ export default function PlacesSection({ trip }) {
   const visitedCount = places.filter((p) => p.visited).length
   const mustSeeCount = places.filter((p) => p.mustSee && !p.visited).length
 
+  function handleAddSuggestion(p) {
+    addPlace(trip.id, {
+      name: p.name, category: p.category, address: '', priceLevel: p.priceLevel || '2',
+      notes: p.description?.slice(0, 200) || '', mustSee: false, tip: '',
+      photoUrl: p.imageUrl || '', rating: '', hours: '', website: '', phone: '',
+    })
+    setAdded((prev) => new Set([...prev, p.id]))
+  }
+
   return (
     <div className="space-y-4">
+      {/* View toggle */}
+      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-linen shadow-sm">
+        <button onClick={() => setViewTab('my')} className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${viewTab === 'my' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}>
+          📍 Moja lista
+        </button>
+        <button onClick={() => setViewTab('suggest')} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-all ${viewTab === 'suggest' ? 'bg-forest text-white shadow-sm' : 'text-ink-light hover:text-ink'}`}>
+          <Lightbulb size={14} /> Predlozi
+        </button>
+      </div>
+
+      {/* SUGGESTIONS TAB */}
+      {viewTab === 'suggest' && (
+        <div className="space-y-3">
+          <p className="text-xs text-mist">Predlozi za <strong className="text-ink">{trip.destination}</strong> — izvor: Wikipedia. Kliknite &ldquo;Dodaj&rdquo; da dodate na svoju listu.</p>
+          {sugLoading && (
+            <div className="space-y-2">
+              {[1,2,3,4].map((i) => <div key={i} className="h-20 bg-linen rounded-2xl animate-pulse" />)}
+            </div>
+          )}
+          {!sugLoading && sugPlaces.length === 0 && (
+            <div className="text-center py-10 bg-white rounded-2xl border-2 border-dashed border-linen">
+              <p className="text-3xl mb-2">🔍</p>
+              <p className="text-mist text-sm">Nema predloga za ovu destinaciju</p>
+            </div>
+          )}
+          {!sugLoading && sugPlaces.map((p) => {
+            const cat = CATEGORIES.find((c) => c.id === p.category) || CATEGORIES.at(-1)
+            const isAdded = added.has(p.id)
+            return (
+              <div key={p.id} className="bg-white rounded-2xl border border-linen shadow-sm overflow-hidden flex gap-3 p-3">
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt={p.name} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-gold/10 flex items-center justify-center text-2xl flex-shrink-0">{cat.emoji}</div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-ink text-sm truncate">{p.name}</p>
+                      <span className="text-[10px] text-mist bg-linen px-1.5 py-0.5 rounded-full">{cat.emoji} {cat.label}</span>
+                    </div>
+                    <button
+                      onClick={() => handleAddSuggestion(p)}
+                      disabled={isAdded}
+                      className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${isAdded ? 'bg-green-100 text-green-700' : 'bg-forest text-white hover:bg-forest-light'}`}
+                    >
+                      {isAdded ? '✓ Dodato' : 'Dodaj'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-mist mt-1 line-clamp-2 leading-relaxed">{p.description}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* MY LIST TAB */}
+      {viewTab === 'my' && <>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">📍 Mesta, restorani & foto spotovi</h2>
@@ -228,6 +301,7 @@ export default function PlacesSection({ trip }) {
           })}
         </div>
       )}
+      </>}
     </div>
   )
 }
