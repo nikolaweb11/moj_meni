@@ -14,7 +14,8 @@ export default {
         amber: { warm: '#F0A855' },
       },
       fontFamily: {
-        display: ['"Playfair Display"', 'Georgia', 'serif'],
+        sans: ['Cinzel', 'Georgia', 'serif'],
+        display: ['Cinzel', 'Georgia', 'serif'],
       },
     },
   },

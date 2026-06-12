@@ -104,6 +104,7 @@ const useStore = create(
       bgEnabled: true,
       bgSelectedPhoto: 'auto',
       userBgPhotos: [],
+      photoInteractions: {},
 
       setCouple: (name1, name2) => set({ couple: { name1, name2 } }),
       setBgEnabled: (bgEnabled) => set({ bgEnabled }),
@@ -515,6 +516,37 @@ const useStore = create(
             }
           ),
         })),
+
+      /* ── PHOTO INTERACTIONS ── */
+      togglePhotoLike: (idx) => set((s) => {
+        const prev = s.photoInteractions?.[idx] || { liked: false, reactions: [], comments: [] }
+        return { photoInteractions: { ...s.photoInteractions, [idx]: { ...prev, liked: !prev.liked } } }
+      }),
+      togglePhotoReaction: (idx, emoji) => set((s) => {
+        const prev = s.photoInteractions?.[idx] || { liked: false, reactions: [], comments: [] }
+        const reactions = (prev.reactions || []).includes(emoji)
+          ? prev.reactions.filter((r) => r !== emoji)
+          : [...(prev.reactions || []), emoji]
+        return { photoInteractions: { ...s.photoInteractions, [idx]: { ...prev, reactions } } }
+      }),
+      addPhotoComment: (idx, text, author) => set((s) => {
+        const prev = s.photoInteractions?.[idx] || { liked: false, reactions: [], comments: [] }
+        return {
+          photoInteractions: {
+            ...s.photoInteractions,
+            [idx]: { ...prev, comments: [...(prev.comments || []), { id: crypto.randomUUID(), text, author, date: new Date().toISOString() }] },
+          },
+        }
+      }),
+      deletePhotoComment: (idx, commentId) => set((s) => {
+        const prev = s.photoInteractions?.[idx] || { liked: false, reactions: [], comments: [] }
+        return {
+          photoInteractions: {
+            ...s.photoInteractions,
+            [idx]: { ...prev, comments: (prev.comments || []).filter((c) => c.id !== commentId) },
+          },
+        }
+      }),
 
       /* ── BUCKET LIST ── */
       addBucketItem: (item) =>

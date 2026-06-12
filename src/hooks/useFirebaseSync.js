@@ -9,6 +9,7 @@ export function useFirebaseSync() {
   const trips = useStore((s) => s.trips)
   const bucketList = useStore((s) => s.bucketList)
   const couple = useStore((s) => s.couple)
+  const photoInteractions = useStore((s) => s.photoInteractions)
 
   const lastRemote = useRef(null)
   const isReady = useRef(false)
@@ -27,11 +28,13 @@ export function useFirebaseSync() {
             trips: data.trips ?? [],
             bucketList: data.bucketList ?? [],
             couple: data.couple ?? {},
+            photoInteractions: data.photoInteractions ?? {},
           })
           useStore.setState({
             trips: data.trips ?? [],
             bucketList: data.bucketList ?? [],
             couple: data.couple ?? useStore.getState().couple,
+            photoInteractions: data.photoInteractions ?? useStore.getState().photoInteractions,
           })
         } else {
           // First run — push local localStorage data up to Firestore
@@ -53,8 +56,8 @@ export function useFirebaseSync() {
   useEffect(() => {
     if (!isConfigured || !isReady.current) return
 
-    const current = JSON.stringify({ trips, bucketList, couple })
-    if (current === lastRemote.current) return // just received this from Firestore, skip
+    const current = JSON.stringify({ trips, bucketList, couple, photoInteractions })
+    if (current === lastRemote.current) return
 
     clearTimeout(writeTimer.current)
     writeTimer.current = setTimeout(() => {
@@ -63,10 +66,11 @@ export function useFirebaseSync() {
         trips: s.trips,
         bucketList: s.bucketList,
         couple: s.couple,
+        photoInteractions: s.photoInteractions,
         updatedAt: Date.now(),
       }).catch(console.warn)
     }, 800)
 
     return () => clearTimeout(writeTimer.current)
-  }, [trips, bucketList, couple])
+  }, [trips, bucketList, couple, photoInteractions])
 }

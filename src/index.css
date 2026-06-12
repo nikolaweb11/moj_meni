@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Cinzel', Georgia, serif;
 }
 
 body {
@@ -12,9 +12,18 @@ body {
 }
 
 .font-display {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: 'Cinzel', Georgia, serif;
 }
 
 .tab-active {
-  @apply bg-white text-slate-800 shadow-sm;
+  @apply bg-white text-ink shadow-sm;
+}
+
+/* Hide scrollbars globally */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
 }

@@ -44,38 +44,38 @@ export function normalizeDestination(dest) {
 export function getDestinationTheme(destination) {
   const lower = (destination || '').toLowerCase()
   if (/island|iceland|reykjavik|rejkjavik/.test(lower))
-    return { from: '#1A3A4A', to: '#0F2218', accent: '#4DB8C8', flag: '🇮🇸' }
+    return { from: '#2B6CB0', to: '#1A4A80', accent: '#90CDF4', flag: '🇮🇸' }
   if (/pariz|paris|franc|bec|wien|vienna/.test(lower))
-    return { from: '#4A2818', to: '#2A1008', accent: '#E8C84A', flag: '🇫🇷' }
+    return { from: '#9B5095', to: '#6B2065', accent: '#E8C84A', flag: '🇫🇷' }
   if (/\brim\b|rome|roma|italija|italy|venecija|venice|firenca|florence|milano/.test(lower))
-    return { from: '#5A1A0A', to: '#3A0A00', accent: '#F4A030', flag: '🇮🇹' }
+    return { from: '#C8482A', to: '#8B2010', accent: '#F4A030', flag: '🇮🇹' }
   if (/japan|tokio|tokyo|osaka|kjoto|kyoto/.test(lower))
-    return { from: '#4A0A1A', to: '#2A0010', accent: '#F4A0C0', flag: '🇯🇵' }
+    return { from: '#C8486E', to: '#8B1840', accent: '#F9A8C9', flag: '🇯🇵' }
   if (/grcka|greece|atina|athens|santorini|mikonos|krf|kreta|crete/.test(lower))
-    return { from: '#0A2A5A', to: '#001040', accent: '#60B8FF', flag: '🇬🇷' }
+    return { from: '#2060B0', to: '#0A3A80', accent: '#60B8FF', flag: '🇬🇷' }
   if (/dubai|abu dhabi|uae/.test(lower))
-    return { from: '#5A3A00', to: '#3A2000', accent: '#F4D030', flag: '🇦🇪' }
+    return { from: '#B07820', to: '#785000', accent: '#F4D030', flag: '🇦🇪' }
   if (/spanija|spain|barselona|barcelona|madrid|seville|valenc/.test(lower))
-    return { from: '#5A0A0A', to: '#3A0000', accent: '#F4D030', flag: '🇪🇸' }
+    return { from: '#C83020', to: '#8B1000', accent: '#F4D030', flag: '🇪🇸' }
   if (/turska|turkey|istanbul|antalya/.test(lower))
-    return { from: '#4A0A10', to: '#2A0008', accent: '#FF7070', flag: '🇹🇷' }
+    return { from: '#C84848', to: '#8B1818', accent: '#FFB0B0', flag: '🇹🇷' }
   if (/tajland|thailand|bali|singapur|singapore/.test(lower))
-    return { from: '#0A3A2A', to: '#001A10', accent: '#40D4A0', flag: '🌴' }
+    return { from: '#208060', to: '#0A5038', accent: '#68D4A8', flag: '🌴' }
   if (/london|england|britanija|uk|scotland/.test(lower))
-    return { from: '#1A1A4A', to: '#0A0A2A', accent: '#8888FF', flag: '🇬🇧' }
+    return { from: '#4848A0', to: '#282860', accent: '#A0A8FF', flag: '🇬🇧' }
   if (/new york|nyc|njujork|usa|america/.test(lower))
-    return { from: '#0A1A3A', to: '#000A20', accent: '#4488FF', flag: '🇺🇸' }
+    return { from: '#204888', to: '#0A2858', accent: '#60A0FF', flag: '🇺🇸' }
   if (/maroko|morocco|marakesh|marakeš/.test(lower))
-    return { from: '#4A1A0A', to: '#2A0800', accent: '#F4A030', flag: '🇲🇦' }
+    return { from: '#B84010', to: '#782000', accent: '#F4A030', flag: '🇲🇦' }
   if (/egipat|egypt|kair|cairo/.test(lower))
-    return { from: '#4A3A00', to: '#2A2000', accent: '#F4C830', flag: '🇪🇬' }
+    return { from: '#A08010', to: '#705800', accent: '#F4C830', flag: '🇪🇬' }
   if (/dubrovnik|split|hvar|hrvatska|croatia/.test(lower))
-    return { from: '#0A2A4A', to: '#001830', accent: '#50B8E8', flag: '🇭🇷' }
+    return { from: '#1868A0', to: '#084870', accent: '#60C8F0', flag: '🇭🇷' }
   if (/crna gora|montenegro|kotor|budva|tivat/.test(lower))
-    return { from: '#1A2A3A', to: '#0A1820', accent: '#60A8C8', flag: '🇲🇪' }
+    return { from: '#286880', to: '#104858', accent: '#60B8C8', flag: '🇲🇪' }
   if (/srbija|serbia|beograd|belgrade/.test(lower))
-    return { from: '#3A0A0A', to: '#200000', accent: '#E84444', flag: '🇷🇸' }
-  return { from: '#2A2018', to: '#181208', accent: '#C4932A', flag: '✈️' }
+    return { from: '#C82020', to: '#880808', accent: '#FF8080', flag: '🇷🇸' }
+  return { from: '#A03058', to: '#6A1030', accent: '#F0A882', flag: '✈️' }
 }
 
 export function useDestinationData(destination) {
