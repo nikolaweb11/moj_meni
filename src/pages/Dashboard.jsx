@@ -1,13 +1,64 @@
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, MapPin, Calendar, Plane } from 'lucide-react'
 import { format, parseISO, isAfter, isBefore, differenceInDays } from 'date-fns'
 import useStore from '../store/useStore'
-import { getDestinationTheme } from '../hooks/useDestinationData'
-
-const BASE = import.meta.env.BASE_URL
+import { getDestinationTheme, useDestinationData } from '../hooks/useDestinationData'
+import { ALL_PHOTOS } from '../components/BackgroundPhoto'
 
 function daysLabel(n) {
   return n === 1 ? '1 dan' : `${n} dana`
+}
+
+function RotatingHero({ couple }) {
+  const [idx, setIdx] = useState(() => Math.floor(Math.random() * ALL_PHOTOS.length))
+  const [fading, setFading] = useState(false)
+
+  const advance = useCallback(() => {
+    setFading(true)
+    setTimeout(() => {
+      setIdx((i) => {
+        let next
+        do { next = Math.floor(Math.random() * ALL_PHOTOS.length) } while (next === i)
+        return next
+      })
+      setFading(false)
+    }, 900)
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(advance, 60000)
+    return () => clearInterval(id)
+  }, [advance])
+
+  return (
+    <div className="relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-xl">
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${ALL_PHOTOS[idx]})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: fading ? 0 : 1,
+          transition: 'opacity 0.9s ease-in-out',
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-9">
+        <p className="text-white/55 text-xs font-medium uppercase tracking-[0.2em] mb-2">✈️ Naša priča</p>
+        <h1 className="font-display text-4xl md:text-5xl font-bold text-white leading-tight mb-1.5">
+          {couple.name1} & {couple.name2}
+        </h1>
+        <p className="text-white/70 text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
+      </div>
+      <Link
+        to="/trips/new"
+        className="absolute top-5 right-5 flex items-center gap-1.5 bg-gold text-[#131918] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gold-light transition-colors shadow-lg"
+      >
+        <Plus size={15} /> Novi odmor
+      </Link>
+    </div>
+  )
 }
 
 export default function Dashboard() {
@@ -27,30 +78,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Hero — waterfall couple */}
-      <div
-        className="relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-xl"
-        style={{
-          backgroundImage: `url(${BASE}images/waterfall-couple.jpg)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 40%',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-9">
-          <p className="text-white/55 text-xs font-medium uppercase tracking-[0.2em] mb-2">✈️ Naša priča</p>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-white leading-tight mb-1.5">
-            {couple.name1} & {couple.name2}
-          </h1>
-          <p className="text-white/70 text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
-        </div>
-        <Link
-          to="/trips/new"
-          className="absolute top-5 right-5 flex items-center gap-1.5 bg-gold text-[#131918] px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gold-light transition-colors shadow-lg"
-        >
-          <Plus size={15} /> Novi odmor
-        </Link>
-      </div>
+      <RotatingHero couple={couple} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -134,20 +162,24 @@ export default function Dashboard() {
 
 function TripCard({ trip, completed }) {
   const theme = getDestinationTheme(trip.destination)
+  const { imageUrl } = useDestinationData(trip.destination)
   const numDays = differenceInDays(parseISO(trip.endDate), parseISO(trip.startDate)) + 1
   const totalSpent = (trip.expenses || []).reduce((s, e) => s + Number(e.amount), 0)
+
+  const cardBg = imageUrl
+    ? { backgroundImage: `url(${imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { background: `linear-gradient(135deg, ${theme.from}, ${theme.to})` }
 
   return (
     <Link
       to={`/trips/${trip.id}`}
       className={`group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-linen hover:-translate-y-0.5 ${completed ? 'opacity-80' : ''}`}
     >
-      <div
-        className="h-36 flex items-end p-4 relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${theme.from}, ${theme.to})` }}
-      >
-        <div className="absolute right-3 top-2 text-7xl opacity-15 select-none leading-none">{theme.flag}</div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
+      <div className="h-36 flex items-end p-4 relative overflow-hidden" style={cardBg}>
+        {!imageUrl && (
+          <div className="absolute right-3 top-2 text-7xl opacity-15 select-none leading-none">{theme.flag}</div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
         {completed && (
           <span className="absolute top-3 left-3 bg-white/15 backdrop-blur-sm text-white/90 text-xs px-2.5 py-0.5 rounded-full font-medium">✓ Završeno</span>
         )}
