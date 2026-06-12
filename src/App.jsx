@@ -8,11 +8,18 @@ import Settings from './pages/Settings'
 import Explore from './pages/Explore'
 import BackgroundPhoto from './components/BackgroundPhoto'
 import BibleVerse from './components/BibleVerse'
+import { useFirebaseSync } from './hooks/useFirebaseSync'
+
+function FirebaseSync() {
+  useFirebaseSync()
+  return null
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen relative">
+        <FirebaseSync />
         <BackgroundPhoto />
         <div className="relative z-10">
           <Navbar />
