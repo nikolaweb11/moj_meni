@@ -9,7 +9,7 @@ const PRIORITIES = [
 ]
 
 const inputCls =
-  'border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white placeholder-slate-400'
+  'border border-linen rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white placeholder-mist'
 
 export default function BucketList() {
   const { bucketList } = useStore()
@@ -41,8 +41,8 @@ export default function BucketList() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Lista želja ⭐</h1>
-          <p className="text-slate-500 text-sm">
+          <h1 className="text-2xl font-bold text-ink">Lista želja ⭐</h1>
+          <p className="text-mist text-sm">
             {done}/{bucketList.length} destinacija posećeno
           </p>
         </div>
@@ -56,8 +56,8 @@ export default function BucketList() {
 
       {/* Add form */}
       {showForm && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
-          <h3 className="font-semibold text-slate-700 mb-4">Nova destinacija</h3>
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-linen mb-6">
+          <h3 className="font-semibold text-ink-light mb-4">Nova destinacija</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <input
@@ -84,7 +84,7 @@ export default function BucketList() {
               className={`${inputCls} w-full`}
             />
             <div>
-              <p className="text-xs text-slate-500 mb-2">Prioritet</p>
+              <p className="text-xs text-mist mb-2">Prioritet</p>
               <div className="flex gap-2">
                 {PRIORITIES.map((p) => (
                   <button
@@ -94,7 +94,7 @@ export default function BucketList() {
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                       form.priority === p.id
                         ? `${p.bg} ${p.text} ring-2 ring-offset-1 ring-current`
-                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                        : 'bg-linen text-mist hover:bg-linen'
                     }`}
                   >
                     {p.emoji} {p.label}
@@ -111,7 +111,7 @@ export default function BucketList() {
               </button>
               <button
                 onClick={() => setShowForm(false)}
-                className="px-4 border border-slate-200 text-slate-600 text-sm py-2.5 rounded-xl hover:bg-slate-50 transition-colors"
+                className="px-4 border border-linen text-ink-light text-sm py-2.5 rounded-xl hover:bg-parchment transition-colors"
               >
                 Otkaži
               </button>
@@ -133,7 +133,7 @@ export default function BucketList() {
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               filter === val
                 ? 'bg-purple-600 text-white'
-                : 'bg-white text-slate-600 border border-slate-200 hover:border-purple-300 hover:text-purple-600'
+                : 'bg-white text-ink-light border border-linen hover:border-purple-300 hover:text-purple-600'
             }`}
           >
             {label}
@@ -142,16 +142,16 @@ export default function BucketList() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+        <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-linen">
           <div className="text-5xl mb-3">🌍</div>
-          <p className="font-semibold text-slate-600 mb-1">
+          <p className="font-semibold text-ink-light mb-1">
             {filter === 'done'
               ? 'Niste još posetili nijednu destinaciju'
               : filter === 'pending'
               ? 'Nema neposećenih destinacija'
               : 'Lista želja je prazna'}
           </p>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-mist">
             {filter === 'all' && 'Dodajte mesta koja želite da posetite zajedno'}
           </p>
         </div>
@@ -165,19 +165,19 @@ export default function BucketList() {
                 className={`bg-white rounded-2xl p-4 shadow-sm border transition-all ${
                   item.done
                     ? 'border-green-200 opacity-75'
-                    : 'border-slate-100 hover:shadow-md hover:-translate-y-0.5'
+                    : 'border-linen hover:shadow-md hover:-translate-y-0.5'
                 }`}
               >
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex-1 min-w-0">
                     <h3
-                      className={`font-bold text-slate-800 text-base ${
-                        item.done ? 'line-through text-slate-400' : ''
+                      className={`font-bold text-ink text-base ${
+                        item.done ? 'line-through text-mist' : ''
                       }`}
                     >
                       {item.destination}
                     </h3>
-                    <p className="text-sm text-slate-500">{item.country}</p>
+                    <p className="text-sm text-mist">{item.country}</p>
                   </div>
                   <span
                     className={`text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0 ml-2 ${priority.bg} ${priority.text}`}
@@ -187,16 +187,16 @@ export default function BucketList() {
                 </div>
 
                 {item.notes && (
-                  <p className="text-xs text-slate-400 mt-2 mb-3 leading-relaxed">{item.notes}</p>
+                  <p className="text-xs text-mist mt-2 mb-3 leading-relaxed">{item.notes}</p>
                 )}
 
-                <div className="flex items-center gap-2 pt-3 border-t border-slate-50 mt-3">
+                <div className="flex items-center gap-2 pt-3 border-t border-linen mt-3">
                   <button
                     onClick={() => toggleBucketItem(item.id)}
                     className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
                       item.done
                         ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-slate-100 text-slate-600 hover:bg-purple-100 hover:text-purple-700'
+                        : 'bg-linen text-ink-light hover:bg-purple-100 hover:text-purple-700'
                     }`}
                   >
                     {item.done ? (
@@ -209,7 +209,7 @@ export default function BucketList() {
                   </button>
                   <button
                     onClick={() => deleteBucketItem(item.id)}
-                    className="ml-auto text-slate-300 hover:text-red-400 transition-colors"
+                    className="ml-auto text-mist hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={14} />
                   </button>

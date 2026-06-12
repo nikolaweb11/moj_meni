@@ -13,7 +13,7 @@ const COLORS = [
 ]
 
 const inputCls =
-  'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white placeholder-slate-400'
+  'w-full border border-linen rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-terra/30 bg-white placeholder-mist'
 
 export default function NewTrip() {
   const addTrip = useStore((s) => s.addTrip)
@@ -62,7 +62,7 @@ export default function NewTrip() {
     <div className="max-w-2xl mx-auto">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 text-sm mb-5 transition-colors"
+        className="flex items-center gap-1.5 text-mist hover:text-ink text-sm mb-5 transition-colors"
       >
         <ArrowLeft size={16} /> Nazad
       </button>
@@ -76,13 +76,13 @@ export default function NewTrip() {
         </span>
       </div>
 
-      <h1 className="text-2xl font-bold text-slate-800 mb-1">Novi odmor</h1>
-      <p className="text-slate-500 text-sm mb-6">Planirajte vašu sledeću avanturu</p>
+      <h1 className="text-2xl font-bold text-ink mb-1">Novi odmor</h1>
+      <p className="text-mist text-sm mb-6">Planirajte vašu sledeću avanturu</p>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-5">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-sm border border-linen space-y-5">
         {/* Color picker */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Tema boje</label>
+          <label className="block text-sm font-medium text-ink-light mb-2">Tema boje</label>
           <div className="flex gap-2 flex-wrap">
             {COLORS.map((c) => (
               <button
@@ -92,7 +92,7 @@ export default function NewTrip() {
                 onClick={() => set('color', c.id)}
                 className={`w-10 h-10 rounded-xl bg-gradient-to-r ${c.cls} transition-all ${
                   form.color === c.id
-                    ? 'ring-2 ring-offset-2 ring-rose-500 scale-110'
+                    ? 'ring-2 ring-offset-2 ring-terra scale-110'
                     : 'hover:scale-105'
                 }`}
               />
@@ -102,8 +102,8 @@ export default function NewTrip() {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Naziv putovanja <span className="text-rose-400">*</span>
+          <label className="block text-sm font-medium text-ink-light mb-1">
+            Naziv putovanja <span className="text-terra">*</span>
           </label>
           <input
             type="text"
@@ -116,8 +116,8 @@ export default function NewTrip() {
 
         {/* Destination */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Destinacija <span className="text-rose-400">*</span>
+          <label className="block text-sm font-medium text-ink-light mb-1">
+            Destinacija <span className="text-terra">*</span>
           </label>
           <input
             type="text"
@@ -131,8 +131,8 @@ export default function NewTrip() {
         {/* Dates */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Datum polaska <span className="text-rose-400">*</span>
+            <label className="block text-sm font-medium text-ink-light mb-1">
+              Datum polaska <span className="text-terra">*</span>
             </label>
             <input
               type="date"
@@ -142,8 +142,8 @@ export default function NewTrip() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Datum povratka <span className="text-rose-400">*</span>
+            <label className="block text-sm font-medium text-ink-light mb-1">
+              Datum povratka <span className="text-terra">*</span>
             </label>
             <input
               type="date"
@@ -158,7 +158,7 @@ export default function NewTrip() {
         {/* Budget */}
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">Budžet</label>
+            <label className="block text-sm font-medium text-ink-light mb-1">Budžet</label>
             <input
               type="number"
               value={form.budgetTotal}
@@ -169,7 +169,7 @@ export default function NewTrip() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Valuta</label>
+            <label className="block text-sm font-medium text-ink-light mb-1">Valuta</label>
             <select
               value={form.currency}
               onChange={(e) => set('currency', e.target.value)}
@@ -186,7 +186,7 @@ export default function NewTrip() {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Opis (opciono)</label>
+          <label className="block text-sm font-medium text-ink-light mb-1">Opis (opciono)</label>
           <textarea
             value={form.description}
             onChange={(e) => set('description', e.target.value)}
@@ -202,7 +202,7 @@ export default function NewTrip() {
 
         <button
           type="submit"
-          className="w-full bg-gradient-to-r from-rose-500 to-purple-600 text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity text-sm"
+          className="w-full bg-gradient-to-r from-terra to-purple-600 text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity text-sm"
         >
           Sačuvaj putovanje ✈️
         </button>

@@ -27,7 +27,7 @@ function compressImage(file, cb) {
 }
 
 const inputCls =
-  'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white placeholder-slate-400'
+  'w-full border border-linen rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-terra/30 bg-white placeholder-mist'
 
 export default function Settings() {
   const couple = useStore((s) => s.couple)
@@ -64,8 +64,8 @@ export default function Settings() {
   return (
     <div className="max-w-xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Podešavanja ⚙️</h1>
-        <p className="text-slate-500 text-sm mt-1">Personalizujte vašu platformu</p>
+        <h1 className="text-2xl font-bold text-ink">Podešavanja ⚙️</h1>
+        <p className="text-mist text-sm mt-1">Personalizujte vašu platformu</p>
       </div>
 
       {/* Couple names */}
