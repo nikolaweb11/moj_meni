@@ -4,6 +4,7 @@ import { Menu, X, Plus, Plane } from 'lucide-react'
 
 const links = [
   { to: '/', label: 'Putovanja', end: true },
+  { to: '/explore', label: 'Istraži', end: false },
   { to: '/bucket-list', label: 'Lista želja', end: false },
   { to: '/settings', label: 'Podešavanja', end: false },
 ]

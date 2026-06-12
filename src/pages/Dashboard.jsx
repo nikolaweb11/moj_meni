@@ -33,7 +33,7 @@ export default function Dashboard() {
         style={{
           backgroundImage: `url(${BASE}images/hero-church.jpg)`,
           backgroundSize: 'cover',
-          backgroundPosition: 'center 40%',
+          backgroundPosition: 'center 70%',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/35 to-black/10" />
@@ -59,6 +59,9 @@ export default function Dashboard() {
         <StatCard value={completed.length} label="Završeno" sub="odmora" color="text-terra" />
         <StatCard value={bucketList.length - bucketDone} label="Lista želja" sub="destinacija" color="text-mist" />
       </div>
+
+      {/* Travel wisdom */}
+      <TravelWisdom />
 
       {/* Ongoing */}
       {ongoing.length > 0 && (
@@ -181,6 +184,35 @@ function StatCard({ value, label, sub, color }) {
       <div className="text-sm font-medium text-ink leading-tight">{label}</div>
       <div className="text-xs text-mist">{sub}</div>
     </div>
+  )
+}
+
+const WISDOM = [
+  { icon: '🧭', title: 'Iskustvo je sve', text: 'Nećete pamtiti cene karata ni hotelske sobe. Pamtićete miris mora u zoru, smeh koji vas je iznenadio, i trenutke kad ste bili potpuno prisutni.' },
+  { icon: '🐢', title: 'Idi sporije', text: 'Brzina preskače suštinu. Grad koji vidite kroz prozor autobusa razlikuje se od grada koji hodite pešice, gubite se u, otkrivate sa stanarima.' },
+  { icon: '💑', title: 'Putovanje je test i nagrada', text: 'Putovanje sa partnerom otkriva vas jedne drugima više od godinu dana zajedničkog života. Odluke, stres, oduševljenje — sve se uvećava na putu. To je dar.' },
+  { icon: '🗺️', title: 'Plan je polazna tačka', text: 'Najbolji trenuci se dešavaju van plana. Planirajte dovoljno da se osećate sigurno, ali ostavite prostor za slučajan skret koji postaje priča za ceo život.' },
+  { icon: '🙏', title: 'Poštujte mesto', text: 'Svaka zemlja ima dušu. Ona se ne vidi u turističkim kartama već u navikama, greškama i ljubaznostima lokalaca. Putnik koji sluša i posmatra učiće više od onog koji stalno govori.' },
+  { icon: '📷', title: 'Nekad spustite fotoaparat', text: 'Fotografija čuva trenutak, ali ga i prekida. Neke prizore treba samo gledati — dišući ih, osećajući. Neka vaša memorija bude najvažniji album.' },
+]
+
+function TravelWisdom() {
+  return (
+    <section>
+      <div className="mb-5">
+        <h2 className="font-display text-xl font-semibold text-ink">Filozofija putovanja</h2>
+        <p className="text-sm text-mist mt-0.5">Šta čini putovanje nezaboravnim</p>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {WISDOM.map((w) => (
+          <div key={w.title} className="bg-white rounded-2xl p-4 border border-linen shadow-sm hover:shadow-md transition-shadow">
+            <span className="text-2xl mb-2 block">{w.icon}</span>
+            <h3 className="font-display font-semibold text-ink text-sm mb-1.5">{w.title}</h3>
+            <p className="text-xs text-ink-light leading-relaxed">{w.text}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
 

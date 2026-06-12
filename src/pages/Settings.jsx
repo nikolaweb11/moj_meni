@@ -1,6 +1,18 @@
 import { useState } from 'react'
-import { Save, Trash2, AlertTriangle, Check } from 'lucide-react'
+import { Save, Trash2, AlertTriangle, Check, Image } from 'lucide-react'
 import useStore from '../store/useStore'
+
+const BASE = import.meta.env.BASE_URL
+
+const BG_PHOTOS = [
+  { id: 'auto', label: 'Auto', thumb: null },
+  { id: 'hero-church.jpg', label: 'Crkva' },
+  { id: 'waterfall-couple.jpg', label: 'Vodopad' },
+  { id: 'black-beach.jpg', label: 'Crna plaža' },
+  { id: 'reykjavik.jpg', label: 'Reykjavik' },
+  { id: 'waterfall-behind.jpg', label: 'Iza vodopada' },
+  { id: 'waterfall-reflection.jpg', label: 'Odraz' },
+]
 
 const inputCls =
   'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white placeholder-slate-400'
@@ -9,6 +21,10 @@ export default function Settings() {
   const couple = useStore((s) => s.couple)
   const setCouple = useStore((s) => s.setCouple)
   const resetAll = useStore((s) => s.resetAll)
+  const bgEnabled = useStore((s) => s.bgEnabled)
+  const bgSelectedPhoto = useStore((s) => s.bgSelectedPhoto)
+  const setBgEnabled = useStore((s) => s.setBgEnabled)
+  const setBgSelectedPhoto = useStore((s) => s.setBgSelectedPhoto)
 
   const [name1, setName1] = useState(couple.name1)
   const [name2, setName2] = useState(couple.name2)
@@ -91,6 +107,53 @@ export default function Settings() {
             )}
           </button>
         </form>
+      </div>
+
+      {/* Background photos */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-semibold text-slate-700 flex items-center gap-2"><Image size={16} className="text-forest" /> Pozadinska fotografija</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Island slike kao pozadina stranica</p>
+          </div>
+          <button
+            onClick={() => setBgEnabled(!bgEnabled)}
+            className={`relative w-11 h-6 rounded-full transition-colors ${bgEnabled ? 'bg-forest' : 'bg-slate-200'}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${bgEnabled ? 'translate-x-5' : ''}`} />
+          </button>
+        </div>
+
+        {bgEnabled && (
+          <div className="space-y-3">
+            <p className="text-xs text-slate-500">Odaberite fotografiju ili pustite da se automatski menjaju</p>
+            <div className="grid grid-cols-4 gap-2">
+              {BG_PHOTOS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setBgSelectedPhoto(p.id)}
+                  className={`relative rounded-xl overflow-hidden border-2 transition-all ${bgSelectedPhoto === p.id ? 'border-forest shadow-md' : 'border-transparent hover:border-linen'}`}
+                >
+                  {p.id === 'auto' ? (
+                    <div className="h-16 bg-gradient-to-br from-forest to-gold/60 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">AUTO</span>
+                    </div>
+                  ) : (
+                    <img src={`${BASE}images/${p.id}`} alt={p.label} className="w-full h-16 object-cover" />
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] py-0.5 text-center truncate px-1">
+                    {p.label}
+                  </div>
+                  {bgSelectedPhoto === p.id && (
+                    <div className="absolute top-1 right-1 w-4 h-4 bg-forest rounded-full flex items-center justify-center">
+                      <Check size={9} className="text-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* About */}

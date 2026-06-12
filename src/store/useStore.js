@@ -88,6 +88,8 @@ function newTrip(data) {
     // pre-trip
     preTrip: DEFAULT_PRETIP.map((t) => ({ ...t, id: crypto.randomUUID(), done: false, deadline: '', notes: '' })),
     notes: '',
+    // family wall
+    familyWall: { guestPosts: [], dailyUpdates: [] },
   }
 }
 
@@ -97,8 +99,12 @@ const useStore = create(
       couple: { name1: 'Ti', name2: 'Ona' },
       trips: [],
       bucketList: [],
+      bgEnabled: true,
+      bgSelectedPhoto: 'auto',
 
       setCouple: (name1, name2) => set({ couple: { name1, name2 } }),
+      setBgEnabled: (bgEnabled) => set({ bgEnabled }),
+      setBgSelectedPhoto: (bgSelectedPhoto) => set({ bgSelectedPhoto }),
 
       /* ── TRIPS ── */
       addTrip: (data) => set((s) => ({ trips: [...s.trips, newTrip(data)] })),
@@ -396,6 +402,70 @@ const useStore = create(
               review: {
                 ...(t.review || EMPTY_REVIEW()),
                 photos: (t.review?.photos || []).filter((p) => p.id !== photoId),
+              },
+            }
+          ),
+        })),
+
+      /* ── FAMILY WALL ── */
+      addGuestPost: (tripId, post) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              familyWall: {
+                ...(t.familyWall || { guestPosts: [], dailyUpdates: [] }),
+                guestPosts: [...(t.familyWall?.guestPosts || []), { ...post, id: crypto.randomUUID(), date: new Date().toISOString() }],
+              },
+            }
+          ),
+        })),
+      deleteGuestPost: (tripId, postId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              familyWall: {
+                ...(t.familyWall || { guestPosts: [], dailyUpdates: [] }),
+                guestPosts: (t.familyWall?.guestPosts || []).filter((p) => p.id !== postId),
+              },
+            }
+          ),
+        })),
+      addDailyUpdate: (tripId, update) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              familyWall: {
+                ...(t.familyWall || { guestPosts: [], dailyUpdates: [] }),
+                dailyUpdates: [...(t.familyWall?.dailyUpdates || []), { ...update, id: crypto.randomUUID(), photos: [], date: new Date().toISOString() }],
+              },
+            }
+          ),
+        })),
+      deleteDailyUpdate: (tripId, updateId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              familyWall: {
+                ...(t.familyWall || { guestPosts: [], dailyUpdates: [] }),
+                dailyUpdates: (t.familyWall?.dailyUpdates || []).filter((u) => u.id !== updateId),
+              },
+            }
+          ),
+        })),
+      addDailyPhoto: (tripId, updateId, photo) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : {
+              ...t,
+              familyWall: {
+                ...(t.familyWall || { guestPosts: [], dailyUpdates: [] }),
+                dailyUpdates: (t.familyWall?.dailyUpdates || []).map((u) =>
+                  u.id !== updateId ? u : { ...u, photos: [...u.photos, { ...photo, id: crypto.randomUUID() }] }
+                ),
               },
             }
           ),

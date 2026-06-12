@@ -4,7 +4,7 @@ import { differenceInDays, parseISO, format } from 'date-fns'
 import {
   ArrowLeft, Trash2, MapPin, Calendar, LayoutDashboard,
   PlaneTakeoff, Building2, CalendarDays, Wallet,
-  Backpack, FileText, Globe, Star, Camera, CheckSquare, Menu, X, Heart,
+  Backpack, FileText, Globe, Star, Camera, CheckSquare, Menu, X, Heart, Users,
 } from 'lucide-react'
 import useStore from '../store/useStore'
 import { useDestinationData, getDestinationTheme } from '../hooks/useDestinationData'
@@ -20,6 +20,7 @@ import LocalInfoSection from '../sections/LocalInfoSection'
 import PlacesSection from '../sections/PlacesSection'
 import MemoriesSection from '../sections/MemoriesSection'
 import PreTripSection from '../sections/PreTripSection'
+import FamilyWallSection from '../sections/FamilyWallSection'
 
 const NAV = [
   { id: 'overview', label: 'Pregled', icon: LayoutDashboard },
@@ -34,6 +35,7 @@ const NAV = [
   { id: 'memories', label: 'Uspomene', icon: Camera },
   { id: 'pretrip', label: 'Pre-trip lista', icon: CheckSquare },
   { id: 'review', label: 'Utisci & ocene', icon: Heart },
+  { id: 'familywall', label: 'Porodični zid', icon: Users },
 ]
 
 export default function TripDetail() {
@@ -74,6 +76,10 @@ export default function TripDetail() {
     if (navId === 'places') return (trip.places || []).length || null
     if (navId === 'memories') return (trip.memories || []).length || null
     if (navId === 'review') return (trip.review?.overallRating > 0) ? '⭐' : null
+    if (navId === 'familywall') {
+      const total = (trip.familyWall?.guestPosts?.length || 0) + (trip.familyWall?.dailyUpdates?.length || 0)
+      return total || null
+    }
     return null
   }
 
@@ -187,6 +193,7 @@ export default function TripDetail() {
           {active === 'memories' && <MemoriesSection trip={trip} />}
           {active === 'pretrip' && <PreTripSection trip={trip} />}
           {active === 'review' && <ReviewSection trip={trip} />}
+          {active === 'familywall' && <FamilyWallSection trip={trip} />}
         </main>
       </div>
 
@@ -206,6 +213,7 @@ export default function TripDetail() {
             {active === 'memories' && <MemoriesSection trip={trip} />}
             {active === 'pretrip' && <PreTripSection trip={trip} />}
             {active === 'review' && <ReviewSection trip={trip} />}
+            {active === 'familywall' && <FamilyWallSection trip={trip} />}
           </>
         )}
       </div>
