@@ -531,7 +531,7 @@ export default function Explore() {
       </div>
 
       {/* Fact card */}
-      <div className="bg-gradient-to-br from-forest/5 to-gold/5 rounded-2xl p-6 border border-forest/10">
+      <div className="bg-white rounded-2xl p-6 border border-linen shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-xl">💡</span>
           <h2 className="font-display text-lg font-semibold text-ink">Zanimljivost</h2>
