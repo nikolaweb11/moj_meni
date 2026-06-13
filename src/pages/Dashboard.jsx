@@ -154,7 +154,7 @@ function HeroCarousel({ couple }) {
         <h1 className="font-display text-4xl md:text-5xl font-bold text-ink leading-tight">
           {couple.name1} & {couple.name2}
         </h1>
-        <p className="text-ink-light/70 text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
+        <p className="text-ink-light text-base font-display italic">Daleko od kuće, bliže jedno drugom</p>
       </div>
 
       {/* Lightbox */}
