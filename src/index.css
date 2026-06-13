@@ -23,7 +23,7 @@ body {
 .bg-white.rounded-2xl,
 .bg-white.rounded-xl,
 .bg-white.rounded-lg {
-  background-color: rgb(255 255 255 / 0.92) !important;
+  background-color: rgb(255 255 255 / 0.87) !important;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
 }
