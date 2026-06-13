@@ -10,7 +10,7 @@ export default {
         terra: { DEFAULT: '#E8956D', light: '#F0A882' },
         gold: { DEFAULT: '#C4892A', light: '#DDA040', dark: '#9E7020' },
         linen: '#F8D8E2',
-        mist: '#8B6478',
+        mist: '#6A3250',
         amber: { warm: '#F0A855' },
       },
       fontFamily: {
