@@ -521,6 +521,7 @@ function GalleryDashboard() {
   const [dragging, setDragging] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
   const fileRef = useRef()
+  const scrollRef = useRef()
 
   useEffect(() => {
     if (!selectedTripId && trips.length > 0) setSelectedTripId(trips[0].id)
@@ -659,37 +660,59 @@ function GalleryDashboard() {
                   )}
                 </div>
 
-                <div className="columns-2 md:columns-3 gap-2 space-y-2">
-                  {photos.map((photo, i) => (
-                    <div key={photo.id} className="break-inside-avoid group relative rounded-xl overflow-hidden shadow-sm cursor-pointer">
-                      <img
-                        src={photo.url}
-                        alt=""
-                        className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onClick={() => setLightbox(i)}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setLightbox(i) }}
-                          className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors"
-                        >
-                          <ZoomIn size={16} className="text-ink" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); deleteGalleryPhoto(selectedTripId, photo.id) }}
-                          className="w-9 h-9 bg-red-500/80 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
-                        >
-                          <Trash2 size={14} className="text-white" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <div
-                    onClick={() => fileRef.current?.click()}
-                    className="break-inside-avoid h-32 rounded-xl border-2 border-dashed border-linen hover:border-terra/40 flex items-center justify-center cursor-pointer transition-colors group"
+                <div className="relative">
+                  <button
+                    onClick={() => scrollRef.current?.scrollBy({ left: -220, behavior: 'smooth' })}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-all border border-linen"
                   >
-                    <Upload size={20} className="text-mist group-hover:text-terra transition-colors" />
+                    <ChevronLeft size={16} className="text-ink" />
+                  </button>
+
+                  <div
+                    ref={scrollRef}
+                    className="gallery-scroll flex gap-2 overflow-x-auto px-10 pb-2.5"
+                  >
+                    {photos.map((photo, i) => (
+                      <div
+                        key={photo.id}
+                        className="flex-shrink-0 w-44 h-44 group relative rounded-xl overflow-hidden shadow-sm cursor-pointer"
+                      >
+                        <img
+                          src={photo.url}
+                          alt=""
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onClick={() => setLightbox(i)}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setLightbox(i) }}
+                            className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                          >
+                            <ZoomIn size={16} className="text-ink" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteGalleryPhoto(selectedTripId, photo.id) }}
+                            className="w-9 h-9 bg-red-500/80 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
+                          >
+                            <Trash2 size={14} className="text-white" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <div
+                      onClick={() => fileRef.current?.click()}
+                      className="flex-shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-linen hover:border-terra/40 flex items-center justify-center cursor-pointer transition-colors group"
+                    >
+                      <Upload size={20} className="text-mist group-hover:text-terra transition-colors" />
+                    </div>
                   </div>
+
+                  <button
+                    onClick={() => scrollRef.current?.scrollBy({ left: 220, behavior: 'smooth' })}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-all border border-linen"
+                  >
+                    <ChevronRight size={16} className="text-ink" />
+                  </button>
                 </div>
               </>
             )}

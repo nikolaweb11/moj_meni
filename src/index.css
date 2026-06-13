@@ -28,6 +28,23 @@ body {
   -webkit-backdrop-filter: blur(3px);
 }
 
+/* Gallery horizontal scroll — override global hidden scrollbar */
+.gallery-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #581F42 transparent;
+}
+.gallery-scroll::-webkit-scrollbar {
+  height: 5px;
+}
+.gallery-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.gallery-scroll::-webkit-scrollbar-thumb {
+  background-color: #581F42;
+  border-radius: 4px;
+  opacity: 0.5;
+}
+
 /* Hide scrollbars globally */
 * {
   scrollbar-width: none;
