@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, MapPin, Calendar, Plane, X, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Trash2, Upload, ZoomIn } from 'lucide-react'
+import { galleryGetByTrip, galleryAdd, galleryDelete, galleryClearTrip } from '../utils/galleryDB'
 import { format, parseISO, isAfter, isBefore, differenceInDays } from 'date-fns'
 import useStore from '../store/useStore'
 import { getDestinationTheme, useDestinationData } from '../hooks/useDestinationData'
@@ -511,11 +512,9 @@ function TravelWisdom() {
 
 function GalleryDashboard() {
   const trips = useStore((s) => s.trips)
-  const addGalleryPhoto = useStore((s) => s.addGalleryPhoto)
-  const deleteGalleryPhoto = useStore((s) => s.deleteGalleryPhoto)
-  const clearTripGallery = useStore((s) => s.clearTripGallery)
 
   const [selectedTripId, setSelectedTripId] = useState(null)
+  const [photos, setPhotos] = useState([])
   const [lightbox, setLightbox] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -523,12 +522,16 @@ function GalleryDashboard() {
   const fileRef = useRef()
   const scrollRef = useRef()
 
+  // Auto-select first trip
   useEffect(() => {
     if (!selectedTripId && trips.length > 0) setSelectedTripId(trips[0].id)
   }, [trips, selectedTripId])
 
-  const selectedTrip = trips.find((t) => t.id === selectedTripId) || null
-  const photos = selectedTrip?.gallery || []
+  // Load photos from IndexedDB when trip changes
+  useEffect(() => {
+    if (!selectedTripId) return
+    galleryGetByTrip(selectedTripId).then(setPhotos).catch(() => setPhotos([]))
+  }, [selectedTripId])
 
   function processFiles(files) {
     const arr = Array.from(files).filter((f) => f.type.startsWith('image/'))
@@ -536,12 +539,32 @@ function GalleryDashboard() {
     setUploading(true)
     let done = 0
     arr.forEach((file) => {
-      compressImage(file, (url) => {
-        addGalleryPhoto(selectedTripId, { url, caption: '', filename: file.name })
+      compressImage(file, async (url) => {
+        const photo = {
+          id: crypto.randomUUID(),
+          tripId: selectedTripId,
+          url,
+          caption: '',
+          filename: file.name,
+          date: new Date().toISOString(),
+        }
+        await galleryAdd(photo)
+        setPhotos((prev) => [...prev, photo])
         done++
         if (done === arr.length) setUploading(false)
       })
     })
+  }
+
+  async function handleDeletePhoto(photoId) {
+    await galleryDelete(photoId)
+    setPhotos((prev) => prev.filter((p) => p.id !== photoId))
+  }
+
+  async function handleClearGallery() {
+    await galleryClearTrip(selectedTripId)
+    setPhotos([])
+    setConfirmClear(false)
   }
 
   const closeLightbox = useCallback(() => setLightbox(null), [])
@@ -582,9 +605,10 @@ function GalleryDashboard() {
           to="/trips/new"
         />
       ) : (
-        <div className="bg-white rounded-2xl border border-linen shadow-sm overflow-hidden">
+        /* No overflow-hidden on outer card — fixes iOS Safari horizontal scroll */
+        <div className="bg-white rounded-2xl border border-linen shadow-sm">
           {/* Trip selector bar */}
-          <div className="flex items-center gap-3 p-4 border-b border-linen bg-parchment/40">
+          <div className="flex items-center gap-3 p-4 border-b border-linen bg-parchment/40 rounded-t-2xl overflow-hidden">
             <label className="text-xs text-mist font-medium flex-shrink-0">Putovanje:</label>
             <select
               value={selectedTripId || ''}
@@ -654,7 +678,7 @@ function GalleryDashboard() {
                   ) : (
                     <div className="flex items-center gap-2.5 text-xs">
                       <span className="text-red-500">Sigurno?</span>
-                      <button onClick={() => { clearTripGallery(selectedTripId); setConfirmClear(false) }} className="font-semibold text-red-600 hover:text-red-700">Da</button>
+                      <button onClick={handleClearGallery} className="font-semibold text-red-600 hover:text-red-700">Da</button>
                       <button onClick={() => setConfirmClear(false)} className="text-mist hover:text-ink">Ne</button>
                     </div>
                   )}
@@ -670,12 +694,14 @@ function GalleryDashboard() {
 
                   <div
                     ref={scrollRef}
-                    className="gallery-scroll flex gap-2 overflow-x-auto px-10 pb-2.5"
+                    className="gallery-scroll flex flex-nowrap gap-2 overflow-x-auto overflow-y-hidden px-10 pb-2.5"
+                    style={{ WebkitOverflowScrolling: 'touch' }}
                   >
                     {photos.map((photo, i) => (
                       <div
                         key={photo.id}
-                        className="flex-shrink-0 w-44 h-44 group relative rounded-xl overflow-hidden shadow-sm cursor-pointer"
+                        style={{ minWidth: '176px', width: '176px', height: '176px' }}
+                        className="flex-none group relative rounded-xl overflow-hidden shadow-sm cursor-pointer"
                       >
                         <img
                           src={photo.url}
@@ -691,7 +717,7 @@ function GalleryDashboard() {
                             <ZoomIn size={16} className="text-ink" />
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); deleteGalleryPhoto(selectedTripId, photo.id) }}
+                            onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id) }}
                             className="w-9 h-9 bg-red-500/80 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
                           >
                             <Trash2 size={14} className="text-white" />
@@ -701,7 +727,8 @@ function GalleryDashboard() {
                     ))}
                     <div
                       onClick={() => fileRef.current?.click()}
-                      className="flex-shrink-0 w-44 h-44 rounded-xl border-2 border-dashed border-linen hover:border-terra/40 flex items-center justify-center cursor-pointer transition-colors group"
+                      style={{ minWidth: '176px', width: '176px', height: '176px' }}
+                      className="flex-none rounded-xl border-2 border-dashed border-linen hover:border-terra/40 flex items-center justify-center cursor-pointer transition-colors group"
                     >
                       <Upload size={20} className="text-mist group-hover:text-terra transition-colors" />
                     </div>
