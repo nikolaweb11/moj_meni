@@ -63,7 +63,7 @@ export default function OverviewSection({ trip, numDays, destData }) {
           {trip.flights?.length > 0 && <InfoRow icon={<PlaneTakeoff size={14} className="text-mist" />} label="Letovi" value={`${trip.flights.length} let(ova)`} />}
           {trip.accommodations?.length > 0 && <InfoRow icon={<Building2 size={14} className="text-mist" />} label="Smeštaj" value={trip.accommodations[0].name} />}
         </div>
-        {trip.description && <p className="mt-4 text-sm text-ink-light/70 border-t border-linen pt-3">{trip.description}</p>}
+        {trip.description && <p className="mt-4 text-sm text-ink-light border-t border-linen pt-3">{trip.description}</p>}
       </div>
 
       {/* Progress */}

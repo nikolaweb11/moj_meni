@@ -149,7 +149,7 @@ export default function MemoriesSection({ trip }) {
                         {m.date && <span className="text-xs text-mist">{format(parseISO(m.date), 'dd.MM.yyyy')}</span>}
                         {m.location && <span className="text-xs text-terra">📍{m.location}</span>}
                       </div>
-                      {m.content && <p className="text-sm text-ink-light/70 mt-1 line-clamp-2">{m.content}</p>}
+                      {m.content && <p className="text-sm text-ink-light mt-1 line-clamp-2">{m.content}</p>}
                       {m.photos?.length > 0 && <span className="text-xs text-mist mt-1 flex items-center gap-1"><Camera size={11} /> {m.photos.length} fotografija</span>}
                     </div>
                     <div className="flex gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -162,7 +162,7 @@ export default function MemoriesSection({ trip }) {
                 {isExp && (
                   <div className="border-t border-linen p-4 space-y-3">
                     {m.content && <p className="text-sm text-ink-light leading-relaxed whitespace-pre-wrap">{m.content}</p>}
-                    {m.tags && <p className="text-xs text-forest/70">{m.tags}</p>}
+                    {m.tags && <p className="text-xs text-forest">{m.tags}</p>}
 
                     {m.photos?.length > 0 && (
                       <div className="grid grid-cols-3 gap-2">

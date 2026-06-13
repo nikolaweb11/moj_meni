@@ -87,12 +87,12 @@ export default function GallerySection({ trip }) {
         {gallery.length === 0 && !uploading && (
           <div className="py-16 flex flex-col items-center gap-3 text-center">
             <div className="w-16 h-16 bg-terra/10 rounded-2xl flex items-center justify-center">
-              <Upload size={28} className="text-terra/60" />
+              <Upload size={28} className="text-terra" />
             </div>
             <div>
               <p className="font-display font-semibold text-ink-light text-lg">Povucite slike ovde</p>
               <p className="text-sm text-mist mt-1">ili kliknite da izaberete • PNG, JPG, HEIC</p>
-              <p className="text-xs text-mist/60 mt-0.5">Možete dodati više slika odjednom</p>
+              <p className="text-xs text-mist mt-0.5">Možete dodati više slika odjednom</p>
             </div>
           </div>
         )}

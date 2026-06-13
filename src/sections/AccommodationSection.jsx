@@ -280,7 +280,7 @@ export default function AccommodationSection({ trip }) {
                     {a.checkIn && a.checkOut && <span className="mx-1">·</span>}
                     {a.checkOut && <span>Check-out: {a.checkOut} {a.checkOutTime}</span>}
                   </div>
-                  {a.address && <div className="text-xs text-mist/70 flex items-center gap-1 mt-0.5"><MapPin size={10} />{a.address}</div>}
+                  {a.address && <div className="text-xs text-mist flex items-center gap-1 mt-0.5"><MapPin size={10} />{a.address}</div>}
                 </div>
                 {expanded === a.id ? <ChevronUp size={15} className="text-mist flex-shrink-0" /> : <ChevronDown size={15} className="text-mist flex-shrink-0" />}
               </div>

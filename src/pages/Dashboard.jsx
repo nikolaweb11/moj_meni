@@ -150,7 +150,6 @@ function HeroCarousel({ couple }) {
 
       {/* Text below circles */}
       <div className="text-center space-y-1">
-        <p className="text-xs font-medium uppercase tracking-[0.25em] text-mist">✈️ Naša priča</p>
         <h1 className="font-display text-4xl md:text-5xl font-bold text-ink leading-tight">
           {couple.name1} & {couple.name2}
         </h1>
@@ -430,7 +429,7 @@ function TripCard({ trip, completed }) {
           <MapPin size={13} style={{ color: theme.accent }} />
           <span>{trip.destination}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-ink-light/70 text-sm">
+        <div className="flex items-center gap-1.5 text-ink-light text-sm">
           <Calendar size={13} className="text-mist" />
           {format(parseISO(trip.startDate), 'dd.MM.yyyy')} — {format(parseISO(trip.endDate), 'dd.MM.yyyy')}
         </div>

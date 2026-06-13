@@ -284,7 +284,7 @@ export default function PlacesSection({ trip }) {
                       {place.priceLevel && <span className="text-xs text-gold-dark font-medium">{PRICE_LEVELS.find((p) => p.id === place.priceLevel)?.label}</span>}
                       {place.rating && <span className="text-xs text-mist">{place.rating}</span>}
                     </div>
-                    {place.notes && <p className="text-xs text-ink-light/70 mt-1">{place.notes}</p>}
+                    {place.notes && <p className="text-xs text-ink-light mt-1">{place.notes}</p>}
                     {place.tip && <p className="text-xs text-gold-dark bg-gold/10 rounded-lg px-2 py-1 mt-1">💡 {place.tip}</p>}
                   </div>
                   <div className="flex flex-col gap-1">

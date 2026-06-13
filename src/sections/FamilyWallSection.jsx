@@ -322,7 +322,7 @@ export default function FamilyWallSection({ trip }) {
               className="py-16 rounded-2xl border-2 border-dashed border-linen hover:border-terra/40 flex flex-col items-center gap-3 text-center cursor-pointer transition-colors"
             >
               <div className="w-16 h-16 bg-terra/10 rounded-2xl flex items-center justify-center">
-                <Camera size={28} className="text-terra/60" />
+                <Camera size={28} className="text-terra" />
               </div>
               <div>
                 <p className="font-display font-semibold text-ink-light text-lg">Zajednički album</p>
