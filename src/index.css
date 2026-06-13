@@ -19,6 +19,15 @@ body {
   @apply bg-white text-ink shadow-sm;
 }
 
+/* Frosted-glass cards — bg-white on rounded elements shows the background photo subtly */
+.bg-white.rounded-2xl,
+.bg-white.rounded-xl,
+.bg-white.rounded-lg {
+  background-color: rgb(255 255 255 / 0.92) !important;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
 /* Hide scrollbars globally */
 * {
   scrollbar-width: none;
