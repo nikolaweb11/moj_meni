@@ -1,10 +1,31 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, MapPin, Calendar, Plane, X, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Trash2 } from 'lucide-react'
+import { Plus, MapPin, Calendar, Plane, X, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Trash2, Upload, ZoomIn } from 'lucide-react'
 import { format, parseISO, isAfter, isBefore, differenceInDays } from 'date-fns'
 import useStore from '../store/useStore'
 import { getDestinationTheme, useDestinationData } from '../hooks/useDestinationData'
 import { ALL_PHOTOS } from '../components/BackgroundPhoto'
+
+function compressImage(file, cb) {
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const img = new Image()
+    img.onload = () => {
+      const MAX = 1200
+      let { width: w, height: h } = img
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round((h * MAX) / w); w = MAX }
+        else { w = Math.round((w * MAX) / h); h = MAX }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      cb(canvas.toDataURL('image/jpeg', 0.82))
+    }
+    img.src = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
 
 function daysLabel(n) {
   return n === 1 ? '1 dan' : `${n} dana`
@@ -368,6 +389,9 @@ export default function Dashboard() {
         </section>
       )}
 
+      {/* Gallery */}
+      <GalleryDashboard />
+
       {/* Bucket list */}
       <section>
         <div className="flex items-center justify-between mb-4">
@@ -481,6 +505,238 @@ function TravelWisdom() {
           </div>
         ))}
       </div>
+    </section>
+  )
+}
+
+function GalleryDashboard() {
+  const trips = useStore((s) => s.trips)
+  const addGalleryPhoto = useStore((s) => s.addGalleryPhoto)
+  const deleteGalleryPhoto = useStore((s) => s.deleteGalleryPhoto)
+  const clearTripGallery = useStore((s) => s.clearTripGallery)
+
+  const [selectedTripId, setSelectedTripId] = useState(null)
+  const [lightbox, setLightbox] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [dragging, setDragging] = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
+  const fileRef = useRef()
+
+  useEffect(() => {
+    if (!selectedTripId && trips.length > 0) setSelectedTripId(trips[0].id)
+  }, [trips, selectedTripId])
+
+  const selectedTrip = trips.find((t) => t.id === selectedTripId) || null
+  const photos = selectedTrip?.gallery || []
+
+  function processFiles(files) {
+    const arr = Array.from(files).filter((f) => f.type.startsWith('image/'))
+    if (!arr.length || !selectedTripId) return
+    setUploading(true)
+    let done = 0
+    arr.forEach((file) => {
+      compressImage(file, (url) => {
+        addGalleryPhoto(selectedTripId, { url, caption: '', filename: file.name })
+        done++
+        if (done === arr.length) setUploading(false)
+      })
+    })
+  }
+
+  const closeLightbox = useCallback(() => setLightbox(null), [])
+
+  useEffect(() => {
+    if (lightbox === null) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [lightbox])
+
+  useEffect(() => {
+    if (lightbox === null) return
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft') setLightbox((i) => Math.max(0, i - 1))
+      else if (e.key === 'ArrowRight') setLightbox((i) => Math.min(photos.length - 1, i + 1))
+      else if (e.key === 'Escape') closeLightbox()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox, photos.length, closeLightbox])
+
+  const lightboxPhoto = lightbox !== null ? photos[lightbox] : null
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="font-display text-xl font-semibold text-ink">📸 Galerija</h2>
+          <p className="text-sm text-mist mt-0.5">Slike sa vaših putovanja</p>
+        </div>
+      </div>
+
+      {trips.length === 0 ? (
+        <EmptyState
+          title="Nema putovanja"
+          subtitle="Dodaj putovanje da možeš da uploaduješ slike u galeriju"
+          cta="Dodaj putovanje"
+          to="/trips/new"
+        />
+      ) : (
+        <div className="bg-white rounded-2xl border border-linen shadow-sm overflow-hidden">
+          {/* Trip selector bar */}
+          <div className="flex items-center gap-3 p-4 border-b border-linen bg-parchment/40">
+            <label className="text-xs text-mist font-medium flex-shrink-0">Putovanje:</label>
+            <select
+              value={selectedTripId || ''}
+              onChange={(e) => { setSelectedTripId(e.target.value); setConfirmClear(false) }}
+              className="flex-1 min-w-0 bg-white border border-linen rounded-xl px-3 py-2 text-sm text-ink font-medium focus:outline-none focus:border-forest transition-colors"
+            >
+              {trips.map((t) => (
+                <option key={t.id} value={t.id}>{t.title} — {t.destination}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={!selectedTripId}
+              className="flex-shrink-0 flex items-center gap-1.5 bg-terra text-white px-3 py-2 rounded-xl text-sm font-medium hover:bg-terra-light transition-colors disabled:opacity-40"
+            >
+              <Upload size={14} /> Dodaj
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => { processFiles(e.target.files); e.target.value = '' }}
+            />
+          </div>
+
+          {/* Body */}
+          <div className="p-4">
+            {uploading && (
+              <div className="flex items-center justify-center gap-3 py-8">
+                <div className="w-4 h-4 border-2 border-terra border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-mist">Dodavanje slika...</span>
+              </div>
+            )}
+
+            {!uploading && photos.length === 0 && (
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setDragging(false); processFiles(e.dataTransfer.files) }}
+                onClick={() => fileRef.current?.click()}
+                className={`py-14 flex flex-col items-center gap-3 text-center rounded-xl border-2 border-dashed cursor-pointer transition-all ${dragging ? 'border-terra bg-terra/5 scale-[1.01]' : 'border-linen hover:border-terra/40'}`}
+              >
+                <div className="w-14 h-14 bg-terra/10 rounded-2xl flex items-center justify-center">
+                  <Upload size={26} className="text-terra" />
+                </div>
+                <div>
+                  <p className="font-display font-semibold text-ink-light">Povucite slike ovde</p>
+                  <p className="text-sm text-mist mt-1">ili kliknite da izaberete • PNG, JPG, HEIC</p>
+                  <p className="text-xs text-mist mt-0.5">Možete dodati više slika odjednom</p>
+                </div>
+              </div>
+            )}
+
+            {!uploading && photos.length > 0 && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-mist">{photos.length} {photos.length === 1 ? 'fotografija' : 'fotografija'}</p>
+                  {!confirmClear ? (
+                    <button
+                      onClick={() => setConfirmClear(true)}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors"
+                    >
+                      <Trash2 size={12} /> Izbriši sve slike putovanja
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2.5 text-xs">
+                      <span className="text-red-500">Sigurno?</span>
+                      <button onClick={() => { clearTripGallery(selectedTripId); setConfirmClear(false) }} className="font-semibold text-red-600 hover:text-red-700">Da</button>
+                      <button onClick={() => setConfirmClear(false)} className="text-mist hover:text-ink">Ne</button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="columns-2 md:columns-3 gap-2 space-y-2">
+                  {photos.map((photo, i) => (
+                    <div key={photo.id} className="break-inside-avoid group relative rounded-xl overflow-hidden shadow-sm cursor-pointer">
+                      <img
+                        src={photo.url}
+                        alt=""
+                        className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onClick={() => setLightbox(i)}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setLightbox(i) }}
+                          className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-colors"
+                        >
+                          <ZoomIn size={16} className="text-ink" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteGalleryPhoto(selectedTripId, photo.id) }}
+                          className="w-9 h-9 bg-red-500/80 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
+                        >
+                          <Trash2 size={14} className="text-white" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <div
+                    onClick={() => fileRef.current?.click()}
+                    className="break-inside-avoid h-32 rounded-xl border-2 border-dashed border-linen hover:border-terra/40 flex items-center justify-center cursor-pointer transition-colors group"
+                  >
+                    <Upload size={20} className="text-mist group-hover:text-terra transition-colors" />
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxPhoto && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
+          style={{ backdropFilter: 'blur(8px)' }}
+          onClick={closeLightbox}
+        >
+          <button
+            onClick={closeLightbox}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-10"
+          >
+            <X size={20} className="text-white" />
+          </button>
+          <p className="absolute top-5 left-1/2 -translate-x-1/2 text-white/40 text-xs z-10">
+            {lightbox + 1} / {photos.length}
+          </p>
+          {lightbox > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightbox((i) => i - 1) }}
+              className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-10"
+            >
+              <ChevronLeft size={22} className="text-white" />
+            </button>
+          )}
+          <img
+            src={lightboxPhoto.url}
+            alt=""
+            className="max-h-[90vh] max-w-full rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {lightbox < photos.length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightbox((i) => i + 1) }}
+              className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors z-10"
+            >
+              <ChevronRight size={22} className="text-white" />
+            </button>
+          )}
+        </div>
+      )}
     </section>
   )
 }

@@ -426,6 +426,12 @@ const useStore = create(
             t.id !== tripId ? t : { ...t, gallery: (t.gallery || []).filter((p) => p.id !== photoId) }
           ),
         })),
+      clearTripGallery: (tripId) =>
+        set((s) => ({
+          trips: s.trips.map((t) =>
+            t.id !== tripId ? t : { ...t, gallery: [] }
+          ),
+        })),
 
       /* ── FAMILY WALL PHOTOS ── */
       addFamilyWallPhoto: (tripId, photo) =>
